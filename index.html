@@ -1,0 +1,2376 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ابني لي - ebnili.dev | نبني مستقبلك الرقمي</title>
+  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            navy: {
+              DEFAULT: '#0F172A',
+              light: '#1E293B',
+              dark: '#090E1A'
+            },
+            builder: {
+              DEFAULT: '#F97316',
+              hover: '#EA580C'
+            },
+            tech: {
+              DEFAULT: '#06B6D4',
+              hover: '#0891B2'
+            }
+          },
+          fontFamily: {
+            cairo: ['Cairo', 'sans-serif'],
+            inter: ['Inter', 'sans-serif']
+          }
+        }
+      }
+    };
+  </script>
+  <style>
+    body {
+      background-color: #0F172A;
+      color: #FFFFFF;
+      font-family: 'Cairo', 'Inter', sans-serif;
+      overflow-x: hidden;
+    }
+    html[dir="ltr"] body {
+      font-family: 'Inter', 'Cairo', sans-serif;
+    }
+    .logo-en {
+      font-family: 'Inter', sans-serif;
+      direction: ltr;
+      unicode-bidi: isolate;
+    }
+    .grid-bg {
+      background-image: radial-gradient(rgba(6, 182, 212, 0.14) 1px, transparent 1px);
+      background-size: 24px 24px;
+    }
+    @keyframes floatSlow {
+      0%, 100% { transform: translateY(0px); }
+      50% { transform: translateY(-6px); }
+    }
+    .float-block {
+      animation: floatSlow 3.5s ease-in-out infinite;
+    }
+    .float-block-delay {
+      animation: floatSlow 4.2s ease-in-out 1.2s infinite;
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col bg-navy text-white selection:bg-builder selection:text-white">
+
+  <!-- Toast Notification -->
+  <div id="toast" class="fixed bottom-5 left-5 z-50 hidden items-center gap-3 bg-navy-light border-2 border-tech px-5 py-3.5 rounded-xl shadow-2xl transition-all duration-300">
+    <span class="w-3 h-3 rounded-full bg-builder inline-block"></span>
+    <span id="toastMessage" class="text-sm font-bold text-white"></span>
+  </div>
+
+  <!-- Project Details / Quote Modal -->
+  <div id="modalOverlay" class="fixed inset-0 bg-black/75 z-50 hidden items-center justify-center p-4">
+    <div class="bg-navy-light border-2 border-tech rounded-2xl max-w-lg w-full p-6 relative shadow-2xl max-h-[90vh] overflow-y-auto">
+      <button id="closeModalBtn" type="button" class="absolute top-4 left-4 rtl:left-4 ltr:right-4 ltr:left-auto text-white/70 hover:text-builder text-xl font-bold w-8 h-8 flex items-center justify-center rounded-lg bg-navy">
+        ✕
+      </button>
+      <div id="modalContent"></div>
+    </div>
+  </div>
+
+  <!-- Hidden Admin Login Modal -->
+  <div id="adminLoginModal" class="fixed inset-0 bg-black/85 z-50 hidden items-center justify-center p-4 backdrop-blur-sm">
+    <div class="bg-navy-light border-2 border-builder rounded-2xl max-w-md w-full p-6 relative shadow-2xl">
+      <button id="closeAdminLoginBtn" type="button" class="absolute top-4 left-4 text-white/70 hover:text-builder text-xl font-bold w-8 h-8 flex items-center justify-center rounded-lg bg-navy">
+        ✕
+      </button>
+      <div class="space-y-4">
+        <div class="flex items-center gap-2">
+          <span class="px-2.5 py-1 rounded bg-builder/20 text-builder text-xs font-black">🔒 مصادقة المسؤول</span>
+        </div>
+        <h3 class="text-xl font-black text-white">تسجيل الدخول المصرح به فقط</h3>
+        <form id="adminLoginForm" class="space-y-3">
+          <div>
+            <label for="adminPassInput" class="block text-xs font-bold text-white/80 mb-1">مفتاح المرور السري</label>
+            <input id="adminPassInput" type="password" required autocomplete="off" class="w-full bg-navy border border-white/20 focus:border-builder rounded-xl px-4 py-2.5 text-sm text-white outline-none logo-en" placeholder="••••••••••••" />
+          </div>
+          <p id="adminLoginError" class="text-xs text-red-400 font-bold hidden">بيانات الاعتماد غير صالحة.</p>
+          <button id="adminLoginSubmitBtn" type="submit" class="w-full bg-builder hover:bg-builder-hover text-white font-black py-3 rounded-xl text-sm transition-colors shadow-lg">
+            دخول إلى لوحة التحكم الكاملة ←
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===================================================================== -->
+  <!-- SEPARATE HIDDEN ADMIN DASHBOARD VIEW (#adminDashboardView)            -->
+  <!-- ===================================================================== -->
+  <div id="adminDashboardView" class="hidden min-h-screen flex flex-col bg-navy-dark text-white" dir="rtl">
+    <!-- Admin Top Header -->
+    <header class="bg-navy border-b border-white/10 sticky top-0 z-40">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-4">
+        <div class="flex items-center gap-3">
+          <div class="logo-en inline-flex items-baseline font-black text-xl select-none">
+            <span class="text-tech">&lt;</span>
+            <span class="relative inline-block text-white">
+              <svg class="w-5 h-3.5 absolute -top-2.5 left-1/2 -translate-x-1/2" viewBox="0 0 64 40" fill="none">
+                <path d="M8 32C8 17 18 6 27 5L29 19H31V4H33V19H35L37 5C46 6 56 17 56 32H8Z" fill="#F97316"/>
+                <rect x="4" y="31" width="56" height="5" rx="2.5" fill="#F97316"/>
+              </svg>
+              e
+            </span>
+            <span class="text-white">bnili</span>
+            <span class="text-tech">/&gt;</span>
+          </div>
+          <span class="px-2.5 py-0.5 rounded-full bg-builder text-white text-xs font-black">لوحة تحكم الإدارة</span>
+          <span id="supabaseStatusBadge" class="px-2.5 py-0.5 rounded-full bg-navy-light border border-white/15 text-white/70 text-[11px] font-bold logo-en">Local Mode</span>
+        </div>
+
+        <div class="flex items-center gap-2.5">
+          <button id="exitAdminToSiteBtn" type="button" class="bg-tech hover:bg-tech-hover text-navy font-black text-xs sm:text-sm px-4 py-2 rounded-xl transition-colors flex items-center gap-1.5">
+            <span>👁️ معاينة الموقع الحي بعد التعديلات</span>
+          </button>
+          <button id="logoutAdminBtn" type="button" class="bg-navy-light hover:bg-red-500/20 border border-white/15 hover:border-red-400 text-white/80 hover:text-red-300 font-bold text-xs px-3 py-2 rounded-xl transition-colors">
+            خروج 🔒
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <!-- Admin Body Layout -->
+    <div class="max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-6 grid grid-cols-1 lg:grid-cols-12 gap-6 flex-1">
+      <!-- Sidebar Navigation (3 Cols) -->
+      <aside class="lg:col-span-3 space-y-4">
+        <!-- Quick KPI Summary Cards -->
+        <div class="grid grid-cols-2 lg:grid-cols-1 gap-3">
+          <div class="bg-navy border border-white/10 rounded-xl p-4 flex items-center justify-between">
+            <div>
+              <div class="text-xs text-white/60 font-bold">إجمالي الاستمارات والرسائل</div>
+              <div id="adminKpiMessages" class="text-2xl font-black text-builder mt-0.5">0</div>
+            </div>
+            <span class="text-2xl">📩</span>
+          </div>
+          <div class="bg-navy border border-white/10 rounded-xl p-4 flex items-center justify-between">
+            <div>
+              <div class="text-xs text-white/60 font-bold">المشاريع المعروضة</div>
+              <div id="adminKpiProjects" class="text-2xl font-black text-tech mt-0.5">0</div>
+            </div>
+            <span class="text-2xl">🚀</span>
+          </div>
+        </div>
+
+        <!-- Admin Section Tabs -->
+        <nav class="bg-navy border border-white/10 rounded-2xl p-2 space-y-1">
+          <button type="button" data-admin-tab="inbox" class="admin-tab-btn w-full text-right px-4 py-3 rounded-xl font-bold text-sm flex items-center justify-between transition-colors bg-builder text-white">
+            <span>📩 الرسائل والاستمارات</span>
+            <span id="inboxBadgeCount" class="px-2 py-0.5 text-xs rounded-full bg-navy text-white font-black">0</span>
+          </button>
+          <button type="button" data-admin-tab="pricing" class="admin-tab-btn w-full text-right px-4 py-3 rounded-xl font-bold text-sm flex items-center justify-between transition-colors text-white/80 hover:bg-navy-light">
+            <span>💰 الأسعار والحاسبة والخدمات</span>
+          </button>
+          <button type="button" data-admin-tab="projects" class="admin-tab-btn w-full text-right px-4 py-3 rounded-xl font-bold text-sm flex items-center justify-between transition-colors text-white/80 hover:bg-navy-light">
+            <span>🏗️ إدارة المشاريع والأعمال</span>
+          </button>
+          <button type="button" data-admin-tab="content" class="admin-tab-btn w-full text-right px-4 py-3 rounded-xl font-bold text-sm flex items-center justify-between transition-colors text-white/80 hover:bg-navy-light">
+            <span>📝 نصوص الموقع وبيانات التواصل</span>
+          </button>
+          <button type="button" data-admin-tab="settings" class="admin-tab-btn w-full text-right px-4 py-3 rounded-xl font-bold text-sm flex items-center justify-between transition-colors text-white/80 hover:bg-navy-light">
+            <span>⚙️ الأمان والنسخ الاحتياطي</span>
+          </button>
+        </nav>
+      </aside>
+
+      <!-- Admin Main Content Panel (9 Cols) -->
+      <main class="lg:col-span-9 space-y-6">
+
+        <!-- TAB 1: INBOX & FORM SUBMISSIONS -->
+        <section id="adminTab_inbox" class="admin-tab-panel bg-navy border border-white/10 rounded-2xl p-6 space-y-5">
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-white/10 pb-4">
+            <div>
+              <h2 class="text-xl font-black text-white">صندوق الرسائل وطلبات المقايسة</h2>
+              <p class="text-xs text-white/70 mt-1">كل استمارة يرسلها العميل من الموقع تظهر هنا فوراً مع حالة المتابعة وتفاصيل المقايسة.</p>
+            </div>
+            <div class="flex items-center gap-2">
+              <select id="adminInboxFilter" class="bg-navy-light border border-white/20 rounded-xl px-3 py-2 text-xs font-bold text-white outline-none">
+                <option value="all">كل الرسائل</option>
+                <option value="new">جديد (لم يتم الرد)</option>
+                <option value="contacted">جاري التواصل</option>
+                <option value="closed">مكتمل / تم التعاقد</option>
+              </select>
+
+            </div>
+          </div>
+
+          <div id="adminInboxList" class="space-y-4"></div>
+        </section>
+
+        <!-- TAB 2: PRICING, SERVICES & ESTIMATOR ADD-ONS -->
+        <section id="adminTab_pricing" class="admin-tab-panel hidden space-y-6">
+          <!-- Core Services & Base Prices -->
+          <div class="bg-navy border border-white/10 rounded-2xl p-6 space-y-5">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-white/10 pb-4">
+              <div>
+                <h2 class="text-xl font-black text-builder">1. الباقات والخدمات الأساسية وأسعارها</h2>
+                <p class="text-xs text-white/70 mt-1">عدّل اسم أي خدمة، وصفها، سعرها بالجنيه أو الدولار، ومدة التنفيذ بالأسابيع (يسمّع فوراً في الموقع والحاسبة).</p>
+              </div>
+              <button id="addNewServiceBtn" type="button" class="bg-builder hover:bg-builder-hover text-white font-bold text-xs px-4 py-2.5 rounded-xl transition-colors">
+                + إضافة خدمة جديدة
+              </button>
+            </div>
+            <div id="adminServicesList" class="space-y-4"></div>
+          </div>
+
+          <!-- Estimator Add-ons -->
+          <div class="bg-navy border border-white/10 rounded-2xl p-6 space-y-5">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-white/10 pb-4">
+              <div>
+                <h2 class="text-xl font-black text-tech">2. إضافات ومميزات حاسبة التكلفة (Add-ons)</h2>
+                <p class="text-xs text-white/70 mt-1">تحكم في أسعار المميزات الإضافية داخل حاسبة تكلفة المشروع أو أضف مميزات جديدة.</p>
+              </div>
+              <button id="addNewAddonBtn" type="button" class="bg-tech hover:bg-tech-hover text-navy font-black text-xs px-4 py-2.5 rounded-xl transition-colors">
+                + إضافة ميزة جديدة للحاسبة
+              </button>
+            </div>
+            <div id="adminAddonsList" class="space-y-3"></div>
+          </div>
+
+          <!-- Delivery Priorities -->
+          <div class="bg-navy border border-white/10 rounded-2xl p-6 space-y-4">
+            <div class="border-b border-white/10 pb-3">
+              <h2 class="text-lg font-black text-white">3. معاملات أولوية التنفيذ والتصميم</h2>
+              <p class="text-xs text-white/70 mt-1">نسبة الضرب في السعر الأساسي (مثلاً 1.0 = السعر العادي، 1.2 = زيادة 20%).</p>
+            </div>
+            <div id="adminPrioritiesList" class="grid grid-cols-1 md:grid-cols-3 gap-4"></div>
+          </div>
+        </section>
+
+        <!-- TAB 3: PORTFOLIO PROJECTS MANAGER -->
+        <section id="adminTab_projects" class="admin-tab-panel hidden bg-navy border border-white/10 rounded-2xl p-6 space-y-5">
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-white/10 pb-4">
+            <div>
+              <h2 class="text-xl font-black text-white">إدارة المشاريع وسابقة الأعمال (Portfolio)</h2>
+              <p class="text-xs text-white/70 mt-1">أضف مشاريع جديدة أو عدّل تفاصيل وتقنيات المشاريع المعروضة في الموقع.</p>
+            </div>
+            <button id="addNewProjectBtn" type="button" class="bg-builder hover:bg-builder-hover text-white font-black text-xs px-4 py-2.5 rounded-xl transition-colors">
+              + إضافة مشروع جديد للمعرض
+            </button>
+          </div>
+
+          <div id="adminProjectsList" class="space-y-4"></div>
+        </section>
+
+        <!-- TAB 4: SITE CONTENT, HERO, PROCESS & CONTACT INFO -->
+        <section id="adminTab_content" class="admin-tab-panel hidden space-y-6">
+          <!-- Hero & Contact Details -->
+          <div class="bg-navy border border-white/10 rounded-2xl p-6 space-y-5">
+            <div class="border-b border-white/10 pb-3">
+              <h2 class="text-xl font-black text-builder">نصوص الواجهة الرئيسية وبيانات التواصل</h2>
+              <p class="text-xs text-white/70 mt-1">أي تعديل هنا يتحدث في الصفحة الرئيسية والفوتر وقسم التواصل فوراً.</p>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label class="block text-xs font-bold text-white/80 mb-1">شارة الترحيب العلوية (عربي)</label>
+                <input id="cfg_hero_badge_ar" type="text" class="w-full bg-navy-light border border-white/20 rounded-xl px-3.5 py-2 text-sm text-white" />
+              </div>
+              <div>
+                <label class="block text-xs font-bold text-white/80 mb-1">العنوان الرئيسي الأول (عربي)</label>
+                <input id="cfg_hero_title1_ar" type="text" class="w-full bg-navy-light border border-white/20 rounded-xl px-3.5 py-2 text-sm text-white" />
+              </div>
+              <div>
+                <label class="block text-xs font-bold text-white/80 mb-1">العنوان البرتقالي البارز (عربي)</label>
+                <input id="cfg_hero_title2_ar" type="text" class="w-full bg-navy-light border border-white/20 rounded-xl px-3.5 py-2 text-sm text-white" />
+              </div>
+              <div>
+                <label class="block text-xs font-bold text-white/80 mb-1">الدومين الرسمي المعروض</label>
+                <input id="cfg_contact_domain" type="text" class="w-full bg-navy-light border border-white/20 rounded-xl px-3.5 py-2 text-sm text-tech logo-en" />
+              </div>
+              <div>
+                <label class="block text-xs font-bold text-white/80 mb-1">البريد الإلكتروني الرسمي</label>
+                <input id="cfg_contact_email" type="text" class="w-full bg-navy-light border border-white/20 rounded-xl px-3.5 py-2 text-sm text-white logo-en" />
+              </div>
+              <div>
+                <label class="block text-xs font-bold text-white/80 mb-1">معرف صفحة فيسبوك</label>
+                <input id="cfg_contact_fb" type="text" class="w-full bg-navy-light border border-white/20 rounded-xl px-3.5 py-2 text-sm text-builder logo-en" />
+              </div>
+              <div class="sm:col-span-2">
+                <label class="block text-xs font-bold text-white/80 mb-1">الوصف التعريفي في الواجهة (عربي)</label>
+                <textarea id="cfg_hero_desc_ar" rows="2" class="w-full bg-navy-light border border-white/20 rounded-xl px-3.5 py-2 text-sm text-white"></textarea>
+              </div>
+            </div>
+
+            <button id="saveContentConfigBtn" type="button" class="bg-builder hover:bg-builder-hover text-white font-black px-6 py-2.5 rounded-xl text-xs sm:text-sm transition-colors">
+              حفظ التعديلات على النصوص وبيانات التواصل ✓
+            </button>
+          </div>
+
+          <!-- 4 Engineering Process Steps Editor -->
+          <div class="bg-navy border border-white/10 rounded-2xl p-6 space-y-4">
+            <div class="border-b border-white/10 pb-3">
+              <h2 class="text-lg font-black text-tech">مراحل البناء الهندسي للمشاريع (4 خطوات)</h2>
+            </div>
+            <div id="adminProcessList" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
+          </div>
+        </section>
+
+        <!-- TAB 5: SUPABASE INTEGRATION, SECURITY & BACKUP -->
+        <section id="adminTab_settings" class="admin-tab-panel hidden space-y-6">
+          <!-- Vercel Serverless + Supabase Environment Variables Card -->
+          <div class="bg-navy border-2 border-tech/40 rounded-2xl p-6 space-y-5">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-white/10 pb-3">
+              <div>
+                <h2 class="text-xl font-black text-tech">⚡ اتصال السيرفر الخلفي (Vercel Serverless + Supabase Env)</h2>
+                <p class="text-xs text-white/70 mt-1">يتم قراءة رابط قاعدة البيانات <code class="logo-en text-builder">DATABASE_URL</code> ومفاتيح التشفير من <strong class="text-white">Vercel Environment Variables</strong> على السيرفر مباشرة دون كشف أي مفاتيح في المتصفح.</p>
+              </div>
+              <button id="syncToSupabaseNowBtn" type="button" class="bg-tech hover:bg-tech-hover text-navy font-black px-4 py-2 rounded-xl text-xs transition-colors">
+                ☁️ مزامنة فورية مع السيرفر (/api/config)
+              </button>
+            </div>
+
+            <div class="bg-navy-light border border-white/10 rounded-xl p-4 space-y-2 text-xs">
+              <div class="font-bold text-white">متغيرات البيئة المطلوبة في لوحة تحكم Vercel (Settings → Environment Variables):</div>
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1 logo-en text-[11px]">
+                <div class="bg-navy p-2.5 rounded-lg border border-white/10"><span class="text-tech font-bold">DATABASE_URL</span> = <span class="text-white/70">postgresql://postgres:[PASS]@db.[REF].supabase.co:5432/postgres</span></div>
+                <div class="bg-navy p-2.5 rounded-lg border border-white/10"><span class="text-builder font-bold">ADMIN_PASSWORD_SALT</span> = <span class="text-white/70">9f86d081884c7d659a2feaa0c55ad015</span></div>
+                <div class="bg-navy p-2.5 rounded-lg border border-white/10"><span class="text-builder font-bold">ADMIN_PASSWORD_HASH</span> = <span class="text-white/70">245ec7eeb904700e7d59923520b9a067...</span></div>
+                <div class="bg-navy p-2.5 rounded-lg border border-white/10"><span class="text-tech font-bold">SESSION_SECRET</span> = <span class="text-white/70">random-64-char-hmac-secret-key</span></div>
+              </div>
+            </div>
+
+            <div class="flex flex-wrap items-center gap-3">
+              <button id="copySupabaseSqlBtn" type="button" class="bg-navy-light hover:bg-tech hover:text-navy border border-tech text-tech font-bold px-4 py-2.5 rounded-xl text-xs transition-colors">
+                📋 نسخ كود إنشاء الجداول (SQL Schema) لـ Supabase
+              </button>
+            </div>
+
+            <!-- SQL Schema Preview -->
+            <details class="bg-navy-light border border-white/10 rounded-xl p-4 text-xs">
+              <summary class="font-bold text-white cursor-pointer select-none">عرض كود SQL لإنشاء الجداول وتفعيل سياسات الأمان (Row-Level Security) في Supabase SQL Editor</summary>
+              <pre id="supabaseSqlCodeBlock" class="mt-3 p-3 bg-navy rounded-lg text-[11px] text-tech overflow-x-auto logo-en leading-relaxed">-- 1. جدول استمارات وطلبات العملاء (submissions)
+create table if not exists public.submissions (
+  id text primary key,
+  name text not null,
+  phone text not null,
+  email text,
+  service text,
+  status text default 'new',
+  brief text not null,
+  created_at timestamptz default now()
+);
+
+-- 2. جدول إعدادات الموقع والأسعار والمشاريع (site_config)
+create table if not exists public.site_config (
+  id int primary key default 1,
+  payload jsonb not null,
+  updated_at timestamptz default now()
+);
+
+-- 3. تفعيل الحماية على مستوى الصفوف (Row-Level Security)
+alter table public.submissions enable row level security;
+alter table public.site_config enable row level security;
+
+-- السماح للزوار بإرسال استمارة طلب فقط (INSERT) ومنعهم تماماً من قراءة رسائل الآخرين
+create policy "Allow public insert submissions" on public.submissions
+  for insert to anon, authenticated with check (true);
+
+-- السماح للأدمن المسجل فقط بقراءة وتحديث وحذف رسائل العملاء
+create policy "Allow admin full access submissions" on public.submissions
+  for all to authenticated using (true) with check (true);
+
+-- السماح للزوار بقراءة الأسعار والمشاريع فقط، وحصر التعديل على الأدمن فقط
+create policy "Allow public read site_config" on public.site_config
+  for select to anon, authenticated using (true);
+
+create policy "Allow admin write site_config" on public.site_config
+  for all to authenticated using (true) with check (true);</pre>
+            </details>
+          </div>
+
+          <div class="bg-navy border border-white/10 rounded-2xl p-6 space-y-5">
+            <h2 class="text-xl font-black text-white border-b border-white/10 pb-3">إعدادات الأمان والنسخ الاحتياطي</h2>
+
+            <div class="max-w-xl space-y-3 pt-2">
+              <label for="newAdminPassInput" class="block text-xs font-bold text-white/80">تحديث مفتاح المرور السري (يتم توليد Salt عشوائي وتشفيرها بـ 5000 جولة SHA-256 أو تحديث كلمة مرور Supabase Auth)</label>
+              <div class="flex gap-2">
+                <input id="newAdminPassInput" type="password" autocomplete="new-password" placeholder="••••••••••••" class="flex-1 bg-navy-light border border-white/20 rounded-xl px-3.5 py-2 text-sm text-white logo-en" />
+                <button id="saveAdminPassBtn" type="button" class="bg-builder hover:bg-builder-hover text-white font-bold px-4 py-2 rounded-xl text-xs">
+                  تحديث كلمة المرور
+                </button>
+              </div>
+            </div>
+
+            <div class="border-t border-white/10 pt-5 flex flex-wrap items-center gap-3">
+              <button id="exportJsonBtn" type="button" class="bg-tech hover:bg-tech-hover text-navy font-black px-4 py-2.5 rounded-xl text-xs transition-colors">
+                📥 نسخ بيانات الموقع والرسائل (JSON Backup)
+              </button>
+              <button id="resetFactoryBtn" type="button" class="bg-red-500/20 hover:bg-red-500 text-red-300 hover:text-white border border-red-500/40 font-bold px-4 py-2.5 rounded-xl text-xs transition-colors">
+                🔄 استعادة الإعدادات والأسعار الافتراضية
+              </button>
+            </div>
+          </div>
+        </section>
+
+      </main>
+    </div>
+  </div>
+
+  <!-- ===================================================================== -->
+  <!-- PUBLIC WEBSITE VIEW (#publicSiteView)                                 -->
+  <!-- ===================================================================== -->
+  <div id="publicSiteView" class="min-h-screen flex flex-col">
+
+    <!-- Navigation Header -->
+    <header class="sticky top-0 z-40 bg-navy/95 backdrop-blur border-b border-white/10">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
+        <!-- Brand Logo (<ebnili/> with orange helmet directly on 'e') -->
+        <a href="#hero" class="flex items-center gap-3 group focus:outline-none">
+          <div class="logo-en inline-flex items-baseline font-black text-2xl sm:text-3xl tracking-tight select-none">
+            <span class="text-tech font-extrabold">&lt;</span>
+            <span class="relative inline-block text-white">
+              <svg class="w-7 h-5 sm:w-8 sm:h-6 absolute -top-3.5 sm:-top-4 left-1/2 -translate-x-1/2 transition-transform group-hover:-translate-y-0.5" viewBox="0 0 64 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M8 32C8 17 18 6 27 5L29 19H31V4H33V19H35L37 5C46 6 56 17 56 32H8Z" fill="#F97316"/>
+                <rect x="4" y="31" width="56" height="5" rx="2.5" fill="#F97316"/>
+              </svg>
+              e
+            </span>
+            <span class="text-white">bnili</span>
+            <span class="text-tech font-extrabold">/&gt;</span>
+          </div>
+          <span class="hidden sm:inline-block text-xs font-bold px-2 py-0.5 rounded bg-builder/20 text-builder border border-builder/40 logo-en">.dev</span>
+        </a>
+
+        <!-- Desktop Nav -->
+        <nav class="hidden md:flex items-center gap-6 text-sm font-bold">
+          <a href="#services" class="hover:text-tech transition-colors" data-i18n="nav_services">خدماتنا</a>
+          <a href="#estimator" class="hover:text-builder transition-colors" data-i18n="nav_estimator">حاسبة تكلفة المشروع</a>
+          <a href="#process" class="hover:text-tech transition-colors" data-i18n="nav_process">كيف نبني؟</a>
+          <a href="#portfolio" class="hover:text-tech transition-colors" data-i18n="nav_portfolio">أعمالنا</a>
+          <a href="#contact" class="hover:text-tech transition-colors" data-i18n="nav_contact">تواصل معنا</a>
+        </nav>
+
+        <!-- Actions: Language Switcher & CTA -->
+        <div class="flex items-center gap-2.5">
+          <button id="langToggleBtn" type="button" class="px-3 py-2 rounded-lg border border-tech/50 text-tech hover:bg-tech hover:text-navy font-bold text-xs sm:text-sm transition-colors">
+            EN
+          </button>
+          <a href="#estimator" class="bg-builder hover:bg-builder-hover text-white font-bold text-xs sm:text-sm px-4 py-2.5 rounded-lg transition-colors shadow-lg">
+            <span data-i18n="nav_cta">ابني مشروعي الآن</span>
+          </a>
+          <button id="mobileMenuBtn" type="button" class="md:hidden p-2 rounded-lg border border-white/20 text-white hover:border-tech" aria-label="Menu">
+            ☰
+          </button>
+        </div>
+      </div>
+
+      <!-- Mobile Dropdown Menu -->
+      <div id="mobileMenu" class="hidden md:hidden bg-navy-light border-b border-white/10 px-4 pt-3 pb-5 space-y-2 text-sm font-bold">
+        <a href="#services" class="mobile-nav-link block py-2 hover:text-tech" data-i18n="nav_services">خدماتنا</a>
+        <a href="#estimator" class="mobile-nav-link block py-2 hover:text-builder" data-i18n="nav_estimator">حاسبة تكلفة المشروع</a>
+        <a href="#process" class="mobile-nav-link block py-2 hover:text-tech" data-i18n="nav_process">كيف نبني؟</a>
+        <a href="#portfolio" class="mobile-nav-link block py-2 hover:text-tech" data-i18n="nav_portfolio">أعمالنا</a>
+        <a href="#contact" class="mobile-nav-link block py-2 hover:text-tech" data-i18n="nav_contact">تواصل معنا</a>
+      </div>
+    </header>
+
+    <!-- Hero Section -->
+    <section id="hero" class="relative grid-bg py-14 sm:py-20 border-b border-white/10">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
+        <!-- Text Column -->
+        <div class="lg:col-span-7 space-y-6">
+          <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-navy-light border border-tech/40 text-tech text-xs sm:text-sm font-bold">
+            <span class="w-2 h-2 rounded-full bg-builder"></span>
+            <span id="heroBadgeText" data-i18n="hero_badge">شريكك الهندسي لبناء المواقع والتطبيقات والأنظمة</span>
+          </div>
+
+          <h1 class="text-3xl sm:text-5xl lg:text-6xl font-black leading-tight">
+            <span id="heroTitle1Text" data-i18n="hero_title_1">عندك فكرة مشروع رقمي؟</span>
+            <span id="heroTitle2Text" class="block text-builder mt-2" data-i18n="hero_title_2">قولنا «ابني لي» وسيب البناء علينا!</span>
+          </h1>
+
+          <p id="heroDescText" class="text-white/80 text-base sm:text-lg leading-relaxed max-w-2xl" data-i18n="hero_desc">
+            في ebnili.dev نتعامل مع موقعك أو تطبيقك كمشروع هندسي متكامل؛ نضع الأساس البرمجي المتين، نصمم واجهات عصرية سهلة الاستخدام، ونسلمك منتجاً رقمياً سريعاً وقابلاً للتوسع.
+          </p>
+
+          <div class="flex flex-wrap items-center gap-4 pt-2">
+            <a href="#estimator" class="bg-builder hover:bg-builder-hover text-white font-extrabold px-6 py-3.5 rounded-xl text-sm sm:text-base transition-all shadow-lg flex items-center gap-2">
+              <span data-i18n="hero_btn_primary">احسب مقايسة مشروعك مجاناً</span>
+              <span>⚡</span>
+            </a>
+            <a href="#portfolio" class="bg-navy-light hover:bg-white/10 border-2 border-tech text-white font-bold px-6 py-3.5 rounded-xl text-sm sm:text-base transition-all">
+              <span data-i18n="hero_btn_secondary">استعرض نماذج أعمالنا</span>
+            </a>
+          </div>
+
+          <!-- Quick Trust Badges -->
+          <div class="grid grid-cols-3 gap-4 pt-6 border-t border-white/10 max-w-lg">
+            <div>
+              <div class="text-2xl sm:text-3xl font-black text-tech logo-en">100%</div>
+              <div class="text-xs sm:text-sm text-white/75 font-semibold" data-i18n="stat_1">كود نظيف وقابل للتوسع</div>
+            </div>
+            <div>
+              <div class="text-2xl sm:text-3xl font-black text-builder logo-en">24/7</div>
+              <div class="text-xs sm:text-sm text-white/75 font-semibold" data-i18n="stat_2">دعم فني وصيانة مستمرة</div>
+            </div>
+            <div>
+              <div class="text-2xl sm:text-3xl font-black text-white logo-en">SEO</div>
+              <div class="text-xs sm:text-sm text-white/75 font-semibold" data-i18n="stat_3">سرعة وتصدر بمحركات البحث</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right Column: Minimalist Flat Abstract Browser Builder Graphic -->
+        <div class="lg:col-span-5 flex flex-col items-center">
+          <div class="w-full max-w-md bg-navy-light/90 border-2 border-white/15 rounded-2xl p-6 relative shadow-2xl">
+            <div class="flex items-center justify-between mb-5">
+              <div class="logo-en inline-flex items-baseline font-black text-2xl">
+                <span class="text-tech">&lt;</span>
+                <span class="relative inline-block text-white">
+                  <svg class="w-6 h-4 absolute -top-3 left-1/2 -translate-x-1/2" viewBox="0 0 64 40" fill="none">
+                    <path d="M8 32C8 17 18 6 27 5L29 19H31V4H33V19H35L37 5C46 6 56 17 56 32H8Z" fill="#F97316"/>
+                    <rect x="4" y="31" width="56" height="5" rx="2.5" fill="#F97316"/>
+                  </svg>
+                  e
+                </span>
+                <span class="text-white">bnili</span>
+                <span class="text-tech">/&gt;</span>
+              </div>
+              <span class="text-xs font-extrabold text-tech logo-en">www.ebnili.dev</span>
+            </div>
+
+            <div class="border-4 border-white rounded-xl bg-navy overflow-hidden">
+              <div class="bg-white px-3 py-2 flex items-center justify-between">
+                <div class="flex items-center gap-1.5">
+                  <span class="w-2.5 h-2.5 rounded-full bg-builder"></span>
+                  <span class="w-2.5 h-2.5 rounded-full bg-builder"></span>
+                  <span class="w-2.5 h-2.5 rounded-full bg-tech"></span>
+                </div>
+                <div class="bg-navy text-tech text-xs font-bold px-3 py-0.5 rounded logo-en">https://ebnili.dev</div>
+              </div>
+
+              <div class="p-4 grid grid-cols-12 gap-3 min-h-[210px] items-stretch">
+                <div class="col-span-5 bg-tech rounded-lg flex flex-col items-center justify-center p-3 text-navy font-black text-2xl float-block">
+                  <span class="logo-en">&lt;/&gt;</span>
+                  <span class="text-[11px] font-extrabold mt-1 uppercase tracking-wider logo-en">Clean Code</span>
+                </div>
+                <div class="col-span-7 bg-tech/90 rounded-lg p-3 flex flex-col justify-between text-navy float-block-delay">
+                  <div class="h-2.5 w-2/3 bg-navy/40 rounded"></div>
+                  <div class="h-2 w-full bg-navy/30 rounded my-1"></div>
+                  <div class="h-2 w-4/5 bg-navy/30 rounded"></div>
+                  <div class="mt-2 inline-block self-start px-2 py-0.5 rounded bg-navy text-white text-[10px] font-bold logo-en">UI / UX READY</div>
+                </div>
+                <div class="col-span-6 bg-builder rounded-lg p-3 flex flex-col justify-center items-center text-white font-bold">
+                  <span class="text-lg font-black logo-en">WEB &amp; APPS</span>
+                  <span class="text-[11px] opacity-90" data-i18n="card_block_1">مواقع وتطبيقات</span>
+                </div>
+                <div class="col-span-6 bg-builder rounded-lg p-3 flex flex-col justify-center items-center text-white font-bold">
+                  <span class="text-lg font-black logo-en">E-COMMERCE</span>
+                  <span class="text-[11px] opacity-90" data-i18n="card_block_2">متاجر إلكترونية</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="mt-4 flex items-center justify-between text-xs font-bold text-white/80 bg-navy px-3.5 py-2.5 rounded-lg border border-white/10">
+              <span data-i18n="builder_status_label">مراحل البناء الرقمي:</span>
+              <span class="text-tech logo-en">IDEA → CODE &lt;/&gt; → LAUNCH 🚀</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Services Section -->
+    <section id="services" class="py-16 border-b border-white/10">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="text-center max-w-2xl mx-auto mb-12">
+          <span class="text-builder font-extrabold text-xs sm:text-sm uppercase tracking-wider" data-i18n="services_kicker">ماذا نبني لك؟</span>
+          <h2 class="text-2xl sm:text-4xl font-black mt-2" data-i18n="services_title">حلول برمجية متكاملة مفصلة على مقاس مشروعك</h2>
+        </div>
+
+        <div id="servicesGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6"></div>
+      </div>
+    </section>
+
+    <!-- Interactive Project Cost & Timeline Estimator -->
+    <section id="estimator" class="py-16 bg-navy-light/50 border-b border-white/10">
+      <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="text-center max-w-2xl mx-auto mb-10">
+          <span class="text-tech font-extrabold text-xs sm:text-sm uppercase tracking-wider" data-i18n="est_kicker">أداة المقايسة الفورية</span>
+          <h2 class="text-2xl sm:text-4xl font-black mt-2" data-i18n="est_title">احسب تكلفة ومدة بناء مشروعك في 3 خطوات</h2>
+          <p class="text-white/75 text-sm sm:text-base mt-2" data-i18n="est_subtitle">اختر نوع المشروع والمميزات المطلوبة، وسنجهز لك مقايسة فورية قابلة للإرسال لفريقنا.</p>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+          <div class="lg:col-span-8 bg-navy border-2 border-white/10 rounded-2xl p-6 space-y-6">
+            <div>
+              <h3 class="text-base sm:text-lg font-extrabold text-builder mb-3 flex items-center gap-2">
+                <span class="w-6 h-6 rounded-full bg-builder text-white text-xs flex items-center justify-center font-black">1</span>
+                <span data-i18n="est_step1">اختر نوع المشروع الأساسي:</span>
+              </h3>
+              <div id="projectTypeButtons" class="grid grid-cols-1 sm:grid-cols-2 gap-3"></div>
+            </div>
+
+            <div>
+              <h3 class="text-base sm:text-lg font-extrabold text-tech mb-3 flex items-center gap-2">
+                <span class="w-6 h-6 rounded-full bg-tech text-navy text-xs flex items-center justify-center font-black">2</span>
+                <span data-i18n="est_step2">أضف المميزات والخصائص المطلوبة:</span>
+              </h3>
+              <div id="featureCheckboxes" class="grid grid-cols-1 sm:grid-cols-2 gap-3"></div>
+            </div>
+
+            <div>
+              <h3 class="text-base sm:text-lg font-extrabold text-white mb-3 flex items-center gap-2">
+                <span class="w-6 h-6 rounded-full bg-white text-navy text-xs flex items-center justify-center font-black">3</span>
+                <span data-i18n="est_step3">مستوى التصميم وأولوية التنفيذ:</span>
+              </h3>
+              <div id="priorityButtons" class="grid grid-cols-1 sm:grid-cols-3 gap-3"></div>
+            </div>
+          </div>
+
+          <div class="lg:col-span-4 bg-navy border-2 border-tech rounded-2xl p-6 space-y-5 sticky top-24 shadow-2xl">
+            <div class="flex items-center justify-between border-b border-white/10 pb-3">
+              <span class="font-black text-lg text-white" data-i18n="est_summary_title">ملخص المقايسة المبدئية</span>
+              <span class="text-xs font-bold px-2.5 py-1 rounded bg-tech/20 text-tech logo-en">&lt;ebnili/&gt;</span>
+            </div>
+
+            <div class="space-y-3 text-sm">
+              <div class="flex justify-between items-center">
+                <span class="text-white/70" data-i18n="est_selected_type_label">نوع المشروع:</span>
+                <span id="summaryType" class="font-bold text-white"></span>
+              </div>
+              <div class="flex justify-between items-center">
+                <span class="text-white/70" data-i18n="est_addons_count_label">المميزات الإضافية:</span>
+                <span id="summaryAddonsCount" class="font-bold text-tech">0</span>
+              </div>
+              <div class="flex justify-between items-center">
+                <span class="text-white/70" data-i18n="est_timeline_label">مدة التنفيذ المتوقعة:</span>
+                <span id="summaryTimeline" class="font-bold text-builder"></span>
+              </div>
+            </div>
+
+            <div class="bg-navy-light rounded-xl p-4 border border-white/10 text-center">
+              <div class="text-xs text-white/70 font-semibold" data-i18n="est_price_label">التكلفة التقديرية للمشروع</div>
+              <div id="summaryPrice" class="text-2xl sm:text-3xl font-black text-tech mt-1 logo-en"></div>
+              <div class="text-[11px] text-white/60 mt-1" data-i18n="est_price_note">* تشمل تصميم UI/UX والدعم الفني المجاني لمدة شهر بعد الإطلاق</div>
+            </div>
+
+            <div class="space-y-2.5 pt-2">
+              <button id="sendEstimateToFormBtn" type="button" class="w-full bg-builder hover:bg-builder-hover text-white font-extrabold py-3 px-4 rounded-xl text-sm transition-colors shadow-lg">
+                <span data-i18n="est_apply_btn">اعتمد هذه المقايسة واطلب استشارة مجانية</span>
+              </button>
+              <button id="copyEstimateBtn" type="button" class="w-full bg-navy-light hover:bg-white/10 border border-tech text-tech font-bold py-2.5 px-4 rounded-xl text-xs transition-colors">
+                <span data-i18n="est_copy_btn">نسخ تفاصيل المقايسة (لإرسالها عبر واتساب أو فيسبوك)</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 4-Step Engineering Process Section -->
+    <section id="process" class="py-16 border-b border-white/10">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="text-center max-w-2xl mx-auto mb-12">
+          <span class="text-builder font-extrabold text-xs sm:text-sm uppercase tracking-wider" data-i18n="process_kicker">من الفكرة إلى الإطلاق</span>
+          <h2 class="text-2xl sm:text-4xl font-black mt-2" data-i18n="process_title">كيف نبني مشروعك في ebnili.dev؟</h2>
+        </div>
+
+        <div id="processGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6"></div>
+      </div>
+    </section>
+
+    <!-- Portfolio / Sample Projects Showcase -->
+    <section id="portfolio" class="py-16 bg-navy-light/40 border-b border-white/10">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex flex-col sm:flex-row sm:items-end justify-between mb-10 gap-4">
+          <div>
+            <span class="text-tech font-extrabold text-xs sm:text-sm uppercase tracking-wider" data-i18n="port_kicker">نماذج وحلول جاهزة للبناء</span>
+            <h2 class="text-2xl sm:text-4xl font-black mt-2" data-i18n="port_title">مشاريع نصممها ونبرمجها باحترافية</h2>
+          </div>
+          <div id="portfolioFilters" class="flex flex-wrap gap-2"></div>
+        </div>
+
+        <div id="portfolioGrid" class="grid grid-cols-1 md:grid-cols-3 gap-6"></div>
+      </div>
+    </section>
+
+    <!-- Contact & Free Consultation Form -->
+    <section id="contact" class="py-16">
+      <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="bg-navy-light border-2 border-white/15 rounded-2xl p-6 sm:p-10 grid grid-cols-1 lg:grid-cols-12 gap-8">
+          <div class="lg:col-span-5 space-y-6 flex flex-col justify-between">
+            <div class="space-y-4">
+              <span class="text-builder font-extrabold text-xs sm:text-sm uppercase tracking-wider" data-i18n="contact_kicker">ابدأ البناء اليوم</span>
+              <h2 class="text-2xl sm:text-3xl font-black" data-i18n="contact_title">احصل على استشارة ومقايسة فنية مجانية لمشروعك</h2>
+              <p class="text-white/75 text-sm leading-relaxed" data-i18n="contact_desc">
+                ابعتلنا فكرة مشروعك، وهيتواصل معاك أحد مهندسينا لمناقشة التفاصيل الفنية وتقديم خطة عمل واضحة بالجدول الزمني والتكلفة.
+              </p>
+            </div>
+
+            <div class="space-y-3 text-sm border-t border-white/10 pt-5">
+              <div class="flex items-center justify-between bg-navy px-4 py-3 rounded-xl border border-white/10">
+                <span class="text-white/70" data-i18n="contact_domain_label">الموقع الرسمي:</span>
+                <span id="publicContactDomain" class="font-black text-tech logo-en">https://ebnili.dev</span>
+              </div>
+              <div class="flex items-center justify-between bg-navy px-4 py-3 rounded-xl border border-white/10">
+                <span class="text-white/70" data-i18n="contact_email_label">البريد الرسمي:</span>
+                <span id="publicContactEmail" class="font-bold text-white logo-en">info@ebnili.dev</span>
+              </div>
+              <div class="flex items-center justify-between bg-navy px-4 py-3 rounded-xl border border-white/10">
+                <span class="text-white/70" data-i18n="contact_fb_label">صفحة فيسبوك:</span>
+                <span id="publicContactFb" class="font-bold text-builder logo-en">@ebnili.dev</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Interactive Form (7 Cols) -->
+          <form id="quoteForm" class="lg:col-span-7 space-y-4 bg-navy p-6 rounded-xl border border-white/10">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label for="clientName" class="block text-xs font-bold text-white/80 mb-1.5" data-i18n="form_name">الاسم الكامل *</label>
+                <input id="clientName" type="text" required class="w-full bg-navy-light border border-white/20 focus:border-tech rounded-lg px-3.5 py-2.5 text-sm text-white outline-none" placeholder="" />
+              </div>
+              <div>
+                <label for="clientPhone" class="block text-xs font-bold text-white/80 mb-1.5" data-i18n="form_phone">رقم الموبايل / واتساب *</label>
+                <input id="clientPhone" type="tel" required class="w-full bg-navy-light border border-white/20 focus:border-tech rounded-lg px-3.5 py-2.5 text-sm text-white outline-none logo-en" placeholder="" />
+              </div>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label for="clientEmail" class="block text-xs font-bold text-white/80 mb-1.5" data-i18n="form_email">البريد الإلكتروني (اختياري)</label>
+                <input id="clientEmail" type="email" class="w-full bg-navy-light border border-white/20 focus:border-tech rounded-lg px-3.5 py-2.5 text-sm text-white outline-none logo-en" placeholder="" />
+              </div>
+              <div>
+                <label for="clientService" class="block text-xs font-bold text-white/80 mb-1.5" data-i18n="form_service">نوع المشروع المطلوب</label>
+                <select id="clientService" class="w-full bg-navy-light border border-white/20 focus:border-tech rounded-lg px-3.5 py-2.5 text-sm text-white outline-none">
+                  <option value="web">موقع إلكتروني تعريفي / شركة</option>
+                  <option value="ecommerce">متجر إلكتروني متكامل</option>
+                  <option value="mobile">تطبيق موبايل (iOS & Android)</option>
+                  <option value="custom">نظام برمجي مخصص (ERP / SaaS)</option>
+                </select>
+              </div>
+            </div>
+
+            <div>
+              <label for="clientBrief" class="block text-xs font-bold text-white/80 mb-1.5" data-i18n="form_brief">تفاصيل فكرتك أو المقايسة المختارة *</label>
+              <textarea id="clientBrief" rows="4" required class="w-full bg-navy-light border border-white/20 focus:border-tech rounded-lg px-3.5 py-2.5 text-sm text-white outline-none" placeholder="اكتب فكرة مشروعك باختصار أو اضغط على (اعتمد هذه المقايسة) من الحاسبة بالأعلى لملء التفاصيل تلقائياً..."></textarea>
+            </div>
+
+            <button type="submit" class="w-full bg-builder hover:bg-builder-hover text-white font-black py-3.5 px-6 rounded-xl text-sm sm:text-base transition-colors shadow-lg">
+              <span data-i18n="form_submit">إرسال طلب المقايسة المجانية 🚀</span>
+            </button>
+          </form>
+        </div>
+      </div>
+    </section>
+
+    <!-- Footer with Discreet Secret Admin Lock Trigger -->
+    <footer class="mt-auto bg-navy-dark border-t border-white/10 py-8">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-4">
+        <div class="flex items-center gap-3">
+          <div class="logo-en inline-flex items-baseline font-black text-xl">
+            <span class="text-tech">&lt;</span>
+            <span class="relative inline-block text-white">
+              <svg class="w-5 h-3.5 absolute -top-2.5 left-1/2 -translate-x-1/2" viewBox="0 0 64 40" fill="none">
+                <path d="M8 32C8 17 18 6 27 5L29 19H31V4H33V19H35L37 5C46 6 56 17 56 32H8Z" fill="#F97316"/>
+                <rect x="4" y="31" width="56" height="5" rx="2.5" fill="#F97316"/>
+              </svg>
+              e
+            </span>
+            <span class="text-white">bnili</span>
+            <span class="text-tech">/&gt;</span>
+          </div>
+          <span class="text-xs text-white/60 font-semibold" data-i18n="footer_rights">© جميع الحقوق محفوظة لشركة ابني لي للحلول البرمجية — ebnili.dev</span>
+        </div>
+        <div class="flex items-center gap-3">
+          <span class="text-xs font-bold text-tech logo-en">BUILD YOUR DIGITAL FUTURE • ebnili.dev</span>
+
+        </div>
+      </div>
+    </footer>
+
+  </div>
+
+  <script>
+    const STORAGE_KEY = 'ebnili_dev_cms_v3';
+
+    // Strict HTML Escaping to prevent Stored/DOM XSS in Admin Inbox & Modals
+    function escapeHtml(str) {
+      return String(str == null ? '' : str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+    }
+
+    // Constant-time string comparison to prevent timing side-channel attacks
+    function timingSafeEqualHex(a, b) {
+      const strA = String(a || '');
+      const strB = String(b || '');
+      if (strA.length !== strB.length) return false;
+      let diff = 0;
+      for (let i = 0; i < strA.length; i++) {
+        diff |= strA.charCodeAt(i) ^ strB.charCodeAt(i);
+      }
+      return diff === 0;
+    }
+
+    // Pure-JS SHA-256 implementation
+    function sha256Hex(ascii) {
+      function rightRotate(value, amount) {
+        return (value >>> amount) | (value << (32 - amount));
+      }
+      let utf8 = unescape(encodeURIComponent(ascii));
+      const mathPow = Math.pow;
+      const maxWord = mathPow(2, 32);
+      let result = '';
+      const words = [];
+      const asciiBitLength = utf8.length * 8;
+      let hash = [];
+      const k = [];
+      let primeCounter = 0;
+      const isComposite = {};
+      for (let candidate = 2; primeCounter < 64; candidate++) {
+        if (!isComposite[candidate]) {
+          for (let i = 0; i < 313; i += candidate) isComposite[i] = candidate;
+          hash[primeCounter] = (mathPow(candidate, 0.5) * maxWord) | 0;
+          k[primeCounter++] = (mathPow(candidate, 1 / 3) * maxWord) | 0;
+        }
+      }
+      utf8 += '\x80';
+      while ((utf8.length % 64) - 56) utf8 += '\x00';
+      for (let i = 0; i < utf8.length; i++) {
+        const j = utf8.charCodeAt(i);
+        words[i >> 2] |= j << (((3 - i) % 4) * 8);
+      }
+      words[words.length] = (asciiBitLength / maxWord) | 0;
+      words[words.length] = asciiBitLength;
+      for (let j = 0; j < words.length; ) {
+        const w = words.slice(j, (j += 16));
+        const oldHash = hash.slice(0);
+        for (let i = 0; i < 64; i++) {
+          const w15 = w[i - 15], w2 = w[i - 2];
+          const a = hash[0], e = hash[4];
+          const temp1 =
+            hash[7] +
+            (rightRotate(e, 6) ^ rightRotate(e, 11) ^ rightRotate(e, 25)) +
+            ((e & hash[5]) ^ (~e & hash[6])) +
+            k[i] +
+            (w[i] =
+              i < 16
+                ? w[i]
+                : (w[i - 16] +
+                    (rightRotate(w15, 7) ^ rightRotate(w15, 18) ^ (w15 >>> 3)) +
+                    w[i - 7] +
+                    (rightRotate(w2, 17) ^ rightRotate(w2, 19) ^ (w2 >>> 10))) |
+                  0);
+          const temp2 =
+            (rightRotate(a, 2) ^ rightRotate(a, 13) ^ rightRotate(a, 22)) +
+            ((a & hash[1]) ^ (a & hash[2]) ^ (hash[1] & hash[2]));
+          hash = [(temp1 + temp2) | 0].concat(hash);
+          hash[4] = (hash[4] + temp1) | 0;
+          hash.pop();
+        }
+        for (let i = 0; i < 8; i++) hash[i] = (hash[i] + oldHash[i]) | 0;
+      }
+      for (let i = 0; i < 8; i++) {
+        for (let j = 3; j + 1; j--) {
+          const b = (hash[i] >> (j * 8)) & 255;
+          result += (b < 16 ? 0 : '') + b.toString(16);
+        }
+      }
+      return result;
+    }
+
+    function generateSaltHex(len = 16) {
+      const chars = '0123456789abcdef';
+      let out = '';
+      for (let i = 0; i < len * 2; i++) {
+        out += chars[Math.floor(Math.random() * 16)];
+      }
+      return out;
+    }
+
+    const KDF_ROUNDS = 5000;
+    function hashPasswordWithSalt(password, salt) {
+      let digest = salt + ':' + password;
+      for (let i = 0; i < KDF_ROUNDS; i++) {
+        digest = sha256Hex(digest);
+      }
+      return digest;
+    }
+
+    const defaultData = {
+      passSalt: '9f86d081884c7d659a2feaa0c55ad015',
+      passHash: '245ec7eeb904700e7d59923520b9a067d51a5ee7c21f2985efe4524af1e0c625',
+      contactInfo: {
+        domain: 'https://ebnili.dev',
+        email: 'info@ebnili.dev',
+        fb: '@ebnili.dev'
+      },
+      i18n: {
+        ar: {
+          nav_services: 'خدماتنا',
+          nav_estimator: 'حاسبة تكلفة المشروع',
+          nav_process: 'كيف نبني؟',
+          nav_portfolio: 'أعمالنا',
+          nav_contact: 'تواصل معنا',
+          nav_cta: 'ابني مشروعي الآن',
+          hero_badge: 'شريكك الهندسي لبناء المواقع والتطبيقات والأنظمة',
+          hero_title_1: 'عندك فكرة مشروع رقمي؟',
+          hero_title_2: 'قولنا «ابني لي» وسيب البناء علينا!',
+          hero_desc: 'في ebnili.dev نتعامل مع موقعك أو تطبيقك كمشروع هندسي متكامل؛ نضع الأساس البرمجي المتين، نصمم واجهات عصرية سهلة الاستخدام، ونسلمك منتجاً رقمياً سريعاً وقابلاً للتوسع.',
+          hero_btn_primary: 'احسب مقايسة مشروعك مجاناً',
+          hero_btn_secondary: 'استعرض نماذج أعمالنا',
+          stat_1: 'كود نظيف وقابل للتوسع',
+          stat_2: 'دعم فني وصيانة مستمرة',
+          stat_3: 'سرعة وتصدر بمحركات البحث',
+          card_block_1: 'مواقع وتطبيقات',
+          card_block_2: 'متاجر إلكترونية',
+          builder_status_label: 'مراحل البناء الرقمي:',
+          services_kicker: 'ماذا نبني لك؟',
+          services_title: 'حلول برمجية متكاملة مفصلة على مقاس مشروعك',
+          est_kicker: 'أداة المقايسة الفورية',
+          est_title: 'احسب تكلفة ومدة بناء مشروعك في 3 خطوات',
+          est_subtitle: 'اختر نوع المشروع والمميزات المطلوبة، وسنجهز لك مقايسة فورية قابلة للإرسال لفريقنا.',
+          est_step1: 'اختر نوع المشروع الأساسي:',
+          est_step2: 'أضف المميزات والخصائص المطلوبة:',
+          est_step3: 'مستوى التصميم وأولوية التنفيذ:',
+          est_summary_title: 'ملخص المقايسة المبدئية',
+          est_selected_type_label: 'نوع المشروع:',
+          est_addons_count_label: 'المميزات الإضافية:',
+          est_timeline_label: 'مدة التنفيذ المتوقعة:',
+          est_price_label: 'التكلفة التقديرية للمشروع',
+          est_price_note: '* تشمل تصميم UI/UX والدعم الفني المجاني لمدة شهر بعد الإطلاق',
+          est_apply_btn: 'اعتمد هذه المقايسة واطلب استشارة مجانية',
+          est_copy_btn: 'نسخ تفاصيل المقايسة (لإرسالها عبر واتساب أو فيسبوك)',
+          process_kicker: 'من الفكرة إلى الإطلاق',
+          process_title: 'كيف نبني مشروعك في ebnili.dev؟',
+          port_kicker: 'نماذج وحلول جاهزة للبناء',
+          port_title: 'مشاريع نصممها ونبرمجها باحترافية',
+          contact_kicker: 'ابدأ البناء اليوم',
+          contact_title: 'احصل على استشارة ومقايسة فنية مجانية لمشروعك',
+          contact_desc: 'ابعتلنا فكرة مشروعك، وهيتواصل معاك أحد مهندسينا لمناقشة التفاصيل الفنية وتقديم خطة عمل واضحة بالجدول الزمني والتكلفة.',
+          contact_domain_label: 'الموقع الرسمي:',
+          contact_email_label: 'البريد الرسمي:',
+          contact_fb_label: 'صفحة فيسبوك:',
+          form_name: 'الاسم الكامل *',
+          form_phone: 'رقم الموبايل / واتساب *',
+          form_email: 'البريد الإلكتروني (اختياري)',
+          form_service: 'نوع المشروع المطلوب',
+          form_brief: 'تفاصيل فكرتك أو المقايسة المختارة *',
+          form_submit: 'إرسال طلب المقايسة المجانية 🚀',
+          footer_rights: '© جميع الحقوق محفوظة لشركة ابني لي للحلول البرمجية — ebnili.dev'
+        },
+        en: {
+          nav_services: 'Services',
+          nav_estimator: 'Project Estimator',
+          nav_process: 'How We Build',
+          nav_portfolio: 'Solutions',
+          nav_contact: 'Contact Us',
+          nav_cta: 'Build My Project',
+          hero_badge: 'Your Engineering Partner for Web, Mobile & Custom Software',
+          hero_title_1: 'Have a Digital Product Idea?',
+          hero_title_2: 'Say "ebnili" & Let Us Build It For You!',
+          hero_desc: 'At ebnili.dev, we engineer your website or mobile app from the ground up—combining rock-solid architecture, modern UI/UX design, and clean scalable code.',
+          hero_btn_primary: 'Estimate Your Project Free',
+          hero_btn_secondary: 'Explore Our Solutions',
+          stat_1: 'Clean & Scalable Code',
+          stat_2: 'Dedicated Tech Support',
+          stat_3: 'Fast & SEO Optimized',
+          card_block_1: 'Web & Mobile',
+          card_block_2: 'Online Stores',
+          builder_status_label: 'Digital Build Pipeline:',
+          services_kicker: 'WHAT WE BUILD',
+          services_title: 'End-to-End Software Solutions Tailored to Your Business',
+          est_kicker: 'INSTANT PROJECT ESTIMATOR',
+          est_title: 'Calculate Your Project Cost & Timeline in 3 Steps',
+          est_subtitle: 'Select your project type and desired features to generate an instant technical brief.',
+          est_step1: 'Select Core Project Type:',
+          est_step2: 'Add Technical Features & Integrations:',
+          est_step3: 'Design Tier & Delivery Speed:',
+          est_summary_title: 'Project Blueprint Summary',
+          est_selected_type_label: 'Project Type:',
+          est_addons_count_label: 'Selected Add-ons:',
+          est_timeline_label: 'Estimated Timeline:',
+          est_price_label: 'Estimated Investment',
+          est_price_note: '* Includes custom UI/UX design & 1 month of free post-launch support',
+          est_apply_btn: 'Use This Blueprint & Request Free Consultation',
+          est_copy_btn: 'Copy Blueprint Summary (for WhatsApp / Messenger)',
+          process_kicker: 'FROM IDEA TO LAUNCH',
+          process_title: 'How We Build Your Product at ebnili.dev',
+          port_kicker: 'READY-TO-BUILD SOLUTIONS',
+          port_title: 'Digital Products We Engineer & Deliver',
+          contact_kicker: 'START BUILDING TODAY',
+          contact_title: 'Get a Free Technical Consultation & Quote',
+          contact_desc: 'Share your idea with us and our software engineers will prepare a detailed technical roadmap, timeline, and quote.',
+          contact_domain_label: 'Official Website:',
+          contact_email_label: 'Official Email:',
+          contact_fb_label: 'Facebook Page:',
+          form_name: 'Full Name *',
+          form_phone: 'Phone / WhatsApp *',
+          form_email: 'Email Address (Optional)',
+          form_service: 'Project Category',
+          form_brief: 'Project Idea or Selected Blueprint *',
+          form_submit: 'Send Free Quote Request 🚀',
+          footer_rights: '© All Rights Reserved — ebnili.dev Software Solutions'
+        }
+      },
+      projectTypes: [
+        {
+          id: 'web',
+          icon: '🌐',
+          nameAr: 'موقع تعريفي للشركات (Corporate Web)',
+          nameEn: 'Corporate & Business Website',
+          descAr: 'موقع عصري سريع متجاوب مع الموبايل ومحركات البحث مع لوحة تحكم سهلة.',
+          descEn: 'Fast, responsive, SEO-ready corporate website with an easy CMS dashboard.',
+          basePriceEGP: 12000,
+          basePriceUSD: 350,
+          weeks: 2
+        },
+        {
+          id: 'ecommerce',
+          icon: '🛒',
+          nameAr: 'متجر إلكتروني متكامل (E-Commerce)',
+          nameEn: 'Full E-Commerce Store',
+          descAr: 'متجر احترافي لإدارة المنتجات، المخزون، الكوبونات، وبوابات الدفع والشحن.',
+          descEn: 'Complete online store with inventory, coupons, payment gateways & shipping.',
+          basePriceEGP: 22000,
+          basePriceUSD: 650,
+          weeks: 3
+        },
+        {
+          id: 'mobile',
+          icon: '📱',
+          nameAr: 'تطبيق موبايل (Android & iOS)',
+          nameEn: 'Mobile Application (iOS & Android)',
+          descAr: 'تطبيق هاتف ذكي عالي الأداء مع لوحة تحكم وربط كامل بالسيرفر ورفعه على المتاجر.',
+          descEn: 'High-performance cross-platform mobile app with backend API & store publishing.',
+          basePriceEGP: 38000,
+          basePriceUSD: 1100,
+          weeks: 6
+        },
+        {
+          id: 'custom',
+          icon: '⚙️',
+          nameAr: 'نظام برمجي خاص (ERP / CRM / SaaS)',
+          nameEn: 'Custom Software / ERP / SaaS',
+          descAr: 'نظام إداري أو منصة سحابية مخصصة بالكامل لإدارة عمليات شركتك وفروعك.',
+          descEn: 'Tailor-made enterprise web system, CRM/ERP dashboard, or SaaS platform.',
+          basePriceEGP: 48000,
+          basePriceUSD: 1450,
+          weeks: 8
+        }
+      ],
+      addonsList: [
+        { id: 'payment', nameAr: 'ربط بوابات الدفع الإلكتروني (Visa / Fawry / Wallet)', nameEn: 'Online Payment Gateways Integration', priceEGP: 4000, priceUSD: 120, weeks: 1 },
+        { id: 'shipping', nameAr: 'ربط شركات الشحن وتتبع الطلبات', nameEn: 'Shipping Carriers & Order Tracking API', priceEGP: 3500, priceUSD: 100, weeks: 1 },
+        { id: 'bilingual', nameAr: 'دعم لغتين (عربي + إنجليزي)', nameEn: 'Bilingual Support (Arabic RTL + English LTR)', priceEGP: 3000, priceUSD: 90, weeks: 1 },
+        { id: 'seo', nameAr: 'تهيئة متقدمة لمحركات البحث (SEO & Speed)', nameEn: 'Advanced Technical SEO & Speed Optimization', priceEGP: 2500, priceUSD: 80, weeks: 0 },
+        { id: 'notifications', nameAr: 'إشعارات فورية وربط واتساب التلقائي', nameEn: 'Push Notifications & WhatsApp Alerts', priceEGP: 3500, priceUSD: 110, weeks: 1 },
+        { id: 'reports', nameAr: 'تقارير تحليلية ولوحة إحصائيات متقدمة', nameEn: 'Advanced Analytics & Financial Reports', priceEGP: 4500, priceUSD: 140, weeks: 1 }
+      ],
+      priorities: [
+        { id: 'standard', nameAr: 'قياسي (توازن مثالي)', nameEn: 'Standard Delivery', multiplier: 1.0, weekMod: 0 },
+        { id: 'custom_ui', nameAr: 'تصميم UI/UX خاص ومبتكر', nameEn: 'Bespoke UI/UX Design', multiplier: 1.2, weekMod: 1 },
+        { id: 'express', nameAr: 'تنفيذ سريع (أولوية قصوى ⚡)', nameEn: 'Express Fast-Track ⚡', multiplier: 1.3, weekMod: -1 }
+      ],
+      processSteps: [
+        {
+          num: '01',
+          tag: 'IDEA',
+          titleAr: 'التحليل والمخطط الهندسي',
+          titleEn: 'Discovery & Blueprint',
+          descAr: 'ندرس فكرتك واحتياجات عملائك ونضع وثيقة المواصفات الفنية والجدول الزمني الدقيق.',
+          descEn: 'We analyze your business goals and create a clear technical blueprint and milestone plan.'
+        },
+        {
+          num: '02',
+          tag: 'UI / UX',
+          titleAr: 'تصميم الواجهات وتجربة المستخدم',
+          titleEn: 'UI/UX Wireframing & Design',
+          descAr: 'نصمم شاشات تفاعلية جذابة وسهلة الاستخدام لتشاهد مشروعك قبل كتابة سطر كود واحد.',
+          descEn: 'Interactive prototypes and modern interfaces so you preview the user journey upfront.'
+        },
+        {
+          num: '03',
+          tag: 'CODE </>',
+          titleAr: 'البرمجة والتطوير المتقن',
+          titleEn: 'Clean Code Engineering',
+          descAr: 'نبني المشروع بأحدث التقنيات بمعايير أمان وسرعة عالية مع ربط كافة الخدمات المطلوبة.',
+          descEn: 'Modular, secure, and scalable front-end and back-end development.'
+        },
+        {
+          num: '04',
+          tag: 'LAUNCH 🚀',
+          titleAr: 'الاختبار، الإطلاق، والدعم الفني',
+          titleEn: 'QA Testing, Launch & Support',
+          descAr: 'نختبر الأداء على كل الأجهزة، نطلق المشروع رسمياً، وندرب فريقك مع دعم فني مستمر.',
+          descEn: 'Full quality assurance, live deployment, team training, and ongoing maintenance.'
+        }
+      ],
+      portfolioItems: [
+        {
+          id: 'p1',
+          category: 'ecommerce',
+          badgeAr: 'متجر إلكتروني',
+          badgeEn: 'E-Commerce',
+          titleAr: 'منصة متجر أزياء وإلكترونيات متكاملة',
+          titleEn: 'Multi-Category E-Commerce Platform',
+          descAr: 'متجر سريع يدعم الدفع الإلكتروني، تتبع الشحنات، كوبونات الخصم، ولوحة تحكم عربية شاملة.',
+          descEn: 'Fast online store with payment gateways, live shipment tracking, and inventory dashboard.',
+          tech: ['Next.js', 'Node.js', 'Payment API', 'Tailwind']
+        },
+        {
+          id: 'p2',
+          category: 'mobile',
+          badgeAr: 'تطبيق موبايل',
+          badgeEn: 'Mobile App',
+          titleAr: 'تطبيق توصيل وطلب خدمات فورية (iOS & Android)',
+          titleEn: 'On-Demand Delivery & Booking App',
+          descAr: 'تطبيق للعميل وتطبيق للمندوب مع تتبع حي على الخريطة وإشعارات فورية ومحفظة إلكترونية.',
+          descEn: 'Customer and driver apps with real-time GPS tracking, push notifications, and in-app wallet.',
+          tech: ['Flutter', 'iOS & Android', 'Real-time Maps', 'REST API']
+        },
+        {
+          id: 'p3',
+          category: 'custom',
+          badgeAr: 'نظام ERP / SaaS',
+          badgeEn: 'Custom ERP / SaaS',
+          titleAr: 'نظام إدارة المبيعات والمخازن والفروع السحابي',
+          titleEn: 'Cloud Inventory, POS & CRM System',
+          descAr: 'نظام متكامل لإدارة الفروع، الفواتير الإلكترونية، صلاحيات الموظفين، والتقارير المالية اللحظية.',
+          descEn: 'Role-based enterprise dashboard for invoicing, multi-branch inventory, and live financial analytics.',
+          tech: ['React', 'PostgreSQL', 'Cloud ERP', 'Analytics']
+        },
+        {
+          id: 'p4',
+          category: 'web',
+          badgeAr: 'موقع شركات',
+          badgeEn: 'Corporate Web',
+          titleAr: 'بوابة إلكترونية لشركة استشارات وهندسة',
+          titleEn: 'Engineering & Real Estate Corporate Portal',
+          descAr: 'موقع تعريفي تفاعلي لعرض سابقة الأعمال، حجز الاستشارات أونلاين، وتصدر نتائج بحث جوجل.',
+          descEn: 'High-conversion corporate website with project gallery, booking engine, and technical SEO.',
+          tech: ['UI/UX', 'SEO Ready', 'CMS Dashboard', 'Fast Load']
+        },
+        {
+          id: 'p5',
+          category: 'mobile',
+          badgeAr: 'منصة تعليمية',
+          badgeEn: 'EdTech Platform',
+          titleAr: 'منصة وتطبيق للكورسات والتدريب التفاعلي',
+          titleEn: 'Interactive E-Learning Web & Mobile App',
+          descAr: 'منصة فيديوهات محمية، اختبارات تفاعلية، شهادات تلقائية، واشتراكات شهرية للطلاب.',
+          descEn: 'Secure video streaming, interactive quizzes, automated certificates, and student subscriptions.',
+          tech: ['Web + App', 'Video DRM', 'Quizzes', 'Online Payments']
+        },
+        {
+          id: 'p6',
+          category: 'custom',
+          badgeAr: 'نظام طبي / عيادات',
+          badgeEn: 'HealthTech System',
+          titleAr: 'نظام حجز وإدارة العيادات والمراكز الطبية',
+          titleEn: 'Clinic Booking & Electronic Medical Records',
+          descAr: 'حجز مواعيد أونلاين، ملف طبي إلكتروني لكل مريض، وتذكير تلقائي بالمواعيد عبر واتساب.',
+          descEn: 'Online patient scheduling, digital medical records, and automated WhatsApp reminders.',
+          tech: ['Custom Web App', 'WhatsApp API', 'Patient Portal']
+        }
+      ],
+      submissions: []
+    };
+
+    function cloneDefault() {
+      return JSON.parse(JSON.stringify(defaultData));
+    }
+
+    function loadSavedStore() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (raw) {
+          const parsed = JSON.parse(raw);
+          return Object.assign(cloneDefault(), parsed);
+        }
+      } catch (e) {}
+      return cloneDefault();
+    }
+
+    let apiServerAvailable = false;
+    let store = loadSavedStore();
+
+    function updateServerStatusBadge() {
+      const badge = document.getElementById('supabaseStatusBadge');
+      if (!badge) return;
+      if (apiServerAvailable) {
+        badge.textContent = 'Vercel + Supabase API Connected ⚡';
+        badge.className = 'px-2.5 py-0.5 rounded-full bg-emerald-500/20 border border-emerald-400 text-emerald-300 text-[11px] font-bold logo-en';
+      } else {
+        badge.textContent = 'Canvas Preview (Vercel API Ready)';
+        badge.className = 'px-2.5 py-0.5 rounded-full bg-navy-light border border-tech/40 text-tech text-[11px] font-bold logo-en';
+      }
+    }
+
+    async function syncConfigToServer() {
+      try {
+        const publicPayload = {
+          contactInfo: store.contactInfo,
+          i18n: store.i18n,
+          projectTypes: store.projectTypes,
+          addonsList: store.addonsList,
+          priorities: store.priorities,
+          processSteps: store.processSteps,
+          portfolioItems: store.portfolioItems
+        };
+        const res = await fetch('/api/config', {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'same-origin',
+          body: JSON.stringify({ payload: publicPayload })
+        });
+        if (res.ok) {
+          apiServerAvailable = true;
+          updateServerStatusBadge();
+          return true;
+        }
+      } catch (e) {}
+      return false;
+    }
+
+    async function loadConfigFromServer() {
+      try {
+        const res = await fetch('/api/config', { method: 'GET', credentials: 'same-origin' });
+        if (res.ok) {
+          const data = await res.json();
+          apiServerAvailable = true;
+          updateServerStatusBadge();
+          if (data && data.payload) {
+            Object.assign(store, data.payload);
+            applyTranslations();
+          }
+        }
+      } catch (e) {
+        updateServerStatusBadge();
+      }
+    }
+
+    async function loadSubmissionsFromServer() {
+      if (!state.isAdminAuthenticated) return;
+      try {
+        const res = await fetch('/api/submissions', { method: 'GET', credentials: 'same-origin' });
+        if (res.ok) {
+          const data = await res.json();
+          apiServerAvailable = true;
+          updateServerStatusBadge();
+          if (Array.isArray(data.submissions)) {
+            store.submissions = data.submissions.map(r => ({
+              id: r.id,
+              name: r.name,
+              phone: r.phone,
+              email: r.email || '',
+              service: r.service || 'web',
+              status: r.status || 'new',
+              brief: r.brief || '',
+              createdAt: r.created_at ? new Date(r.created_at).toLocaleString('ar-EG') : (r.createdAt || '')
+            }));
+            renderAdminInbox();
+          }
+        }
+      } catch (e) {}
+    }
+
+    function saveStore() {
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(store));
+      } catch (e) {}
+      if (state.isAdminAuthenticated) {
+        syncConfigToServer();
+      }
+    }
+
+    const state = {
+      lang: 'ar',
+      selectedType: 'ecommerce',
+      selectedAddons: ['payment', 'seo'],
+      selectedPriority: 'standard',
+      portfolioFilter: 'all',
+      isAdminAuthenticated: false,
+      activeAdminTab: 'inbox',
+      inboxFilter: 'all'
+    };
+
+    function showToast(msg) {
+      const toast = document.getElementById('toast');
+      const toastMessage = document.getElementById('toastMessage');
+      toastMessage.textContent = msg;
+      toast.classList.remove('hidden');
+      toast.classList.add('flex');
+      if (window._toastTimer) clearTimeout(window._toastTimer);
+      window._toastTimer = setTimeout(() => {
+        toast.classList.add('hidden');
+        toast.classList.remove('flex');
+      }, 3800);
+    }
+
+    function openModal(htmlContent) {
+      const overlay = document.getElementById('modalOverlay');
+      const content = document.getElementById('modalContent');
+      content.innerHTML = htmlContent;
+      overlay.classList.remove('hidden');
+      overlay.classList.add('flex');
+    }
+
+    function closeModal() {
+      const overlay = document.getElementById('modalOverlay');
+      overlay.classList.add('hidden');
+      overlay.classList.remove('flex');
+    }
+
+    // -----------------------------------------------------------------------
+    // PUBLIC SITE RENDERING
+    // -----------------------------------------------------------------------
+
+    function syncClientServiceDropdown() {
+      const selectEl = document.getElementById('clientService');
+      if (!selectEl) return;
+      const currentVal = selectEl.value;
+      const isAr = state.lang === 'ar';
+      selectEl.innerHTML = store.projectTypes.map(t =>
+        `<option value="${t.id}">${isAr ? t.nameAr : t.nameEn}</option>`
+      ).join('');
+      if (store.projectTypes.some(t => t.id === currentVal)) {
+        selectEl.value = currentVal;
+      }
+    }
+
+    function renderServices() {
+      const container = document.getElementById('servicesGrid');
+      const isAr = state.lang === 'ar';
+      container.innerHTML = store.projectTypes.map(item => `
+        <div class="bg-navy-light border-2 border-white/10 hover:border-tech rounded-2xl p-6 flex flex-col justify-between transition-all group">
+          <div>
+            <div class="w-12 h-12 rounded-xl bg-navy border border-tech/40 flex items-center justify-center text-2xl mb-4 group-hover:bg-tech group-hover:text-navy transition-colors">
+              ${item.icon || '💻'}
+            </div>
+            <h3 class="text-lg font-extrabold text-white mb-2">${isAr ? item.nameAr : item.nameEn}</h3>
+            <p class="text-white/75 text-sm leading-relaxed">${isAr ? item.descAr : item.descEn}</p>
+            <div class="mt-3 text-xs font-black text-tech logo-en">
+              ${isAr ? `يبدأ من ${Number(item.basePriceEGP).toLocaleString()} ج.م` : `Starts at $${Number(item.basePriceUSD).toLocaleString()}`}
+            </div>
+          </div>
+          <button type="button" data-select-service="${item.id}" class="mt-6 w-full bg-navy hover:bg-builder text-tech hover:text-white border border-tech/40 hover:border-builder font-bold text-xs py-2.5 px-4 rounded-xl transition-colors">
+            ${isAr ? 'احسب تكلفة هذه الخدمة ←' : 'Calculate Service Cost →'}
+          </button>
+        </div>
+      `).join('');
+
+      container.querySelectorAll('[data-select-service]').forEach(btn => {
+        btn.addEventListener('click', () => {
+          state.selectedType = btn.getAttribute('data-select-service');
+          renderEstimator();
+          document.getElementById('estimator').scrollIntoView({ behavior: 'smooth' });
+        });
+      });
+      syncClientServiceDropdown();
+    }
+
+    function calculateEstimate() {
+      const typeObj = store.projectTypes.find(t => t.id === state.selectedType) || store.projectTypes[0] || {
+        id: 'default', nameAr: 'مشروع برمجي', nameEn: 'Software Project', basePriceEGP: 15000, basePriceUSD: 450, weeks: 3
+      };
+      const priorityObj = store.priorities.find(p => p.id === state.selectedPriority) || store.priorities[0] || {
+        id: 'standard', nameAr: 'قياسي', nameEn: 'Standard', multiplier: 1, weekMod: 0
+      };
+      const isAr = state.lang === 'ar';
+
+      let totalEGP = Number(typeObj.basePriceEGP) || 0;
+      let totalUSD = Number(typeObj.basePriceUSD) || 0;
+      let totalWeeks = Number(typeObj.weeks) || 2;
+
+      state.selectedAddons.forEach(addonId => {
+        const addon = store.addonsList.find(a => a.id === addonId);
+        if (addon) {
+          totalEGP += Number(addon.priceEGP) || 0;
+          totalUSD += Number(addon.priceUSD) || 0;
+          totalWeeks += Number(addon.weeks) || 0;
+        }
+      });
+
+      totalEGP = Math.round((totalEGP * (Number(priorityObj.multiplier) || 1)) / 500) * 500;
+      totalUSD = Math.round((totalUSD * (Number(priorityObj.multiplier) || 1)) / 10) * 10;
+      totalWeeks = Math.max(1, totalWeeks + (Number(priorityObj.weekMod) || 0));
+
+      return {
+        typeObj,
+        priorityObj,
+        totalEGP,
+        totalUSD,
+        totalWeeks,
+        formattedPrice: isAr ? `${totalEGP.toLocaleString()} ج.م` : `$${totalUSD.toLocaleString()} USD`,
+        formattedTimeline: isAr ? `${totalWeeks} إلى ${totalWeeks + 1} أسابيع` : `${totalWeeks} - ${totalWeeks + 1} Weeks`
+      };
+    }
+
+    function getBlueprintText() {
+      const est = calculateEstimate();
+      const isAr = state.lang === 'ar';
+      const addonNames = state.selectedAddons.map(id => {
+        const a = store.addonsList.find(x => x.id === id);
+        return a ? (isAr ? a.nameAr : a.nameEn) : '';
+      }).filter(Boolean);
+
+      if (isAr) {
+        return `مقايسة مشروع من موقع ebnili.dev:\n• نوع المشروع: ${est.typeObj.nameAr}\n• المميزات المطلوبة: ${addonNames.length ? addonNames.join(' + ') : 'الباقة الأساسية'}\n• الأولوية والتصميم: ${est.priorityObj.nameAr}\n• المدة التقديرية: ${est.formattedTimeline}\n• التكلفة التقديرية: ${est.formattedPrice}`;
+      }
+      return `Project Blueprint from ebnili.dev:\n• Type: ${est.typeObj.nameEn}\n• Add-ons: ${addonNames.length ? addonNames.join(' + ') : 'Core Package'}\n• Tier: ${est.priorityObj.nameEn}\n• Timeline: ${est.formattedTimeline}\n• Estimated Cost: ${est.formattedPrice}`;
+    }
+
+    function renderEstimator() {
+      const isAr = state.lang === 'ar';
+      if (!store.projectTypes.some(t => t.id === state.selectedType) && store.projectTypes.length > 0) {
+        state.selectedType = store.projectTypes[0].id;
+      }
+
+      const typeContainer = document.getElementById('projectTypeButtons');
+      typeContainer.innerHTML = store.projectTypes.map(t => {
+        const active = state.selectedType === t.id;
+        return `
+          <button type="button" data-type-id="${t.id}" class="text-start p-3.5 rounded-xl border-2 transition-all flex items-start gap-3 ${active ? 'bg-builder/15 border-builder text-white' : 'bg-navy-light border-white/10 text-white/80 hover:border-white/30'}">
+            <span class="text-xl">${t.icon || '💻'}</span>
+            <div>
+              <div class="font-bold text-sm">${isAr ? t.nameAr : t.nameEn}</div>
+              <div class="text-xs text-tech font-bold mt-0.5 logo-en">${isAr ? `يبدأ من ${Number(t.basePriceEGP).toLocaleString()} ج.م` : `Starts at $${Number(t.basePriceUSD).toLocaleString()}`}</div>
+            </div>
+          </button>
+        `;
+      }).join('');
+
+      typeContainer.querySelectorAll('[data-type-id]').forEach(btn => {
+        btn.addEventListener('click', () => {
+          state.selectedType = btn.getAttribute('data-type-id');
+          renderEstimator();
+        });
+      });
+
+      const addonsContainer = document.getElementById('featureCheckboxes');
+      addonsContainer.innerHTML = store.addonsList.map(a => {
+        const checked = state.selectedAddons.includes(a.id);
+        return `
+          <button type="button" data-addon-id="${a.id}" class="text-start p-3 rounded-xl border transition-all flex items-center justify-between gap-2 ${checked ? 'bg-tech/15 border-tech text-white' : 'bg-navy-light border-white/10 text-white/75 hover:border-white/30'}">
+            <div class="flex items-center gap-2.5">
+              <span class="w-5 h-5 rounded flex items-center justify-center text-xs font-black ${checked ? 'bg-tech text-navy' : 'bg-navy border border-white/30'}">${checked ? '✓' : ''}</span>
+              <div>
+                <div class="text-xs sm:text-sm font-semibold">${isAr ? a.nameAr : a.nameEn}</div>
+                <div class="text-[11px] text-tech font-bold logo-en">+${isAr ? `${Number(a.priceEGP).toLocaleString()} ج.م` : `$${a.priceUSD}`}</div>
+              </div>
+            </div>
+          </button>
+        `;
+      }).join('');
+
+      addonsContainer.querySelectorAll('[data-addon-id]').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const id = btn.getAttribute('data-addon-id');
+          if (state.selectedAddons.includes(id)) {
+            state.selectedAddons = state.selectedAddons.filter(x => x !== id);
+          } else {
+            state.selectedAddons.push(id);
+          }
+          renderEstimator();
+        });
+      });
+
+      const prioContainer = document.getElementById('priorityButtons');
+      prioContainer.innerHTML = store.priorities.map(p => {
+        const active = state.selectedPriority === p.id;
+        return `
+          <button type="button" data-prio-id="${p.id}" class="p-3 rounded-xl border-2 text-xs sm:text-sm font-bold transition-all ${active ? 'bg-white text-navy border-white' : 'bg-navy-light text-white/80 border-white/10 hover:border-white/30'}">
+            ${isAr ? p.nameAr : p.nameEn}
+          </button>
+        `;
+      }).join('');
+
+      prioContainer.querySelectorAll('[data-prio-id]').forEach(btn => {
+        btn.addEventListener('click', () => {
+          state.selectedPriority = btn.getAttribute('data-prio-id');
+          renderEstimator();
+        });
+      });
+
+      const est = calculateEstimate();
+      document.getElementById('summaryType').textContent = isAr ? est.typeObj.nameAr : est.typeObj.nameEn;
+      document.getElementById('summaryAddonsCount').textContent = state.selectedAddons.length;
+      document.getElementById('summaryTimeline').textContent = est.formattedTimeline;
+      document.getElementById('summaryPrice').textContent = est.formattedPrice;
+    }
+
+    function renderProcess() {
+      const container = document.getElementById('processGrid');
+      const isAr = state.lang === 'ar';
+      container.innerHTML = store.processSteps.map(step => `
+        <div class="bg-navy-light border border-white/10 rounded-2xl p-6 relative overflow-hidden">
+          <div class="flex items-center justify-between mb-4">
+            <span class="text-xs font-black px-2.5 py-1 rounded bg-builder text-white logo-en">${step.tag}</span>
+            <span class="text-2xl font-black text-tech/40 logo-en">${step.num}</span>
+          </div>
+          <h3 class="text-lg font-extrabold text-white mb-2">${isAr ? step.titleAr : step.titleEn}</h3>
+          <p class="text-white/75 text-sm leading-relaxed">${isAr ? step.descAr : step.descEn}</p>
+        </div>
+      `).join('');
+    }
+
+    function renderPortfolio() {
+      const isAr = state.lang === 'ar';
+      const filters = [
+        { id: 'all', nameAr: 'الكل', nameEn: 'All' },
+        { id: 'ecommerce', nameAr: 'متاجر إلكترونية', nameEn: 'E-Commerce' },
+        { id: 'mobile', nameAr: 'تطبيقات موبايل', nameEn: 'Mobile Apps' },
+        { id: 'custom', nameAr: 'أنظمة خاصة ERP', nameEn: 'Custom ERP' },
+        { id: 'web', nameAr: 'مواقع شركات', nameEn: 'Corporate Web' }
+      ];
+
+      const filterContainer = document.getElementById('portfolioFilters');
+      filterContainer.innerHTML = filters.map(f => {
+        const active = state.portfolioFilter === f.id;
+        return `
+          <button type="button" data-filter-id="${f.id}" class="px-3.5 py-1.5 rounded-lg text-xs sm:text-sm font-bold transition-colors ${active ? 'bg-tech text-navy' : 'bg-navy border border-white/15 text-white/80 hover:border-tech'}">
+            ${isAr ? f.nameAr : f.nameEn}
+          </button>
+        `;
+      }).join('');
+
+      filterContainer.querySelectorAll('[data-filter-id]').forEach(btn => {
+        btn.addEventListener('click', () => {
+          state.portfolioFilter = btn.getAttribute('data-filter-id');
+          renderPortfolio();
+        });
+      });
+
+      const filtered = state.portfolioFilter === 'all'
+        ? store.portfolioItems
+        : store.portfolioItems.filter(p => p.category === state.portfolioFilter);
+
+      const grid = document.getElementById('portfolioGrid');
+      grid.innerHTML = filtered.map(item => `
+        <div class="bg-navy border-2 border-white/10 hover:border-builder rounded-2xl p-6 flex flex-col justify-between transition-all">
+          <div>
+            <div class="flex items-center justify-between mb-3">
+              <span class="text-xs font-extrabold px-2.5 py-1 rounded bg-builder/20 text-builder">${isAr ? item.badgeAr : item.badgeEn}</span>
+              <span class="text-xs font-bold text-tech logo-en">&lt;ebnili/&gt;</span>
+            </div>
+            <h3 class="text-lg font-extrabold text-white mb-2">${isAr ? item.titleAr : item.titleEn}</h3>
+            <p class="text-white/75 text-sm leading-relaxed mb-4">${isAr ? item.descAr : item.descEn}</p>
+          </div>
+          <div>
+            <div class="flex flex-wrap gap-1.5 mb-4">
+              ${(item.tech || []).map(t => `<span class="text-[11px] font-bold px-2 py-0.5 rounded bg-navy-light text-white/80 border border-white/10 logo-en">${t}</span>`).join('')}
+            </div>
+            <button type="button" data-request-similar="${item.id}" class="w-full bg-navy-light hover:bg-builder text-white font-bold text-xs py-2.5 px-4 rounded-xl border border-white/15 hover:border-builder transition-colors">
+              ${isAr ? 'اطلب بناء مشروع مشابه ←' : 'Build a Similar Project →'}
+            </button>
+          </div>
+        </div>
+      `).join('');
+
+      grid.querySelectorAll('[data-request-similar]').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const item = store.portfolioItems.find(p => p.id === btn.getAttribute('data-request-similar'));
+          if (!item) return;
+          const selectEl = document.getElementById('clientService');
+          if (selectEl) selectEl.value = item.category;
+          const briefEl = document.getElementById('clientBrief');
+          briefEl.value = isAr
+            ? `أرغب في بناء مشروع مشابه لـ: "${item.titleAr}" (${item.badgeAr}).`
+            : `I would like to build a project similar to: "${item.titleEn}" (${item.badgeEn}).`;
+          document.getElementById('contact').scrollIntoView({ behavior: 'smooth' });
+          showToast(isAr ? 'تم اختيار النموذج! أكمل بياناتك بالأسفل' : 'Template selected! Complete your details below');
+        });
+      });
+    }
+
+    function applyTranslations() {
+      const isAr = state.lang === 'ar';
+      document.documentElement.lang = isAr ? 'ar' : 'en';
+      document.documentElement.dir = isAr ? 'rtl' : 'ltr';
+      document.getElementById('langToggleBtn').textContent = isAr ? 'EN' : 'عربي';
+
+      const dict = store.i18n[state.lang];
+      document.querySelectorAll('[data-i18n]').forEach(el => {
+        const key = el.getAttribute('data-i18n');
+        if (dict && dict[key]) el.textContent = dict[key];
+      });
+
+      document.getElementById('publicContactDomain').textContent = store.contactInfo.domain;
+      document.getElementById('publicContactEmail').textContent = store.contactInfo.email;
+      document.getElementById('publicContactFb').textContent = store.contactInfo.fb;
+
+      renderServices();
+      renderEstimator();
+      renderProcess();
+      renderPortfolio();
+    }
+
+    // -----------------------------------------------------------------------
+    // HIDDEN SEPARATE ADMIN DASHBOARD LOGIC
+    // -----------------------------------------------------------------------
+
+    function openAdminGate() {
+      if (state.isAdminAuthenticated) {
+        enterAdminDashboard();
+      } else {
+        const modal = document.getElementById('adminLoginModal');
+        document.getElementById('adminLoginError').classList.add('hidden');
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+        document.getElementById('adminPassInput').focus();
+      }
+    }
+
+    function closeAdminLoginModal() {
+      const modal = document.getElementById('adminLoginModal');
+      modal.classList.add('hidden');
+      modal.classList.remove('flex');
+    }
+
+    function enterAdminDashboard() {
+      closeAdminLoginModal();
+      document.getElementById('publicSiteView').classList.add('hidden');
+      document.getElementById('adminDashboardView').classList.remove('hidden');
+      renderAdminAll();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function exitAdminToSite() {
+      document.getElementById('adminDashboardView').classList.add('hidden');
+      document.getElementById('publicSiteView').classList.remove('hidden');
+      if (window.location.hash === '#admin') {
+        history.replaceState(null, '', ' ');
+      }
+      applyTranslations();
+    }
+
+    function switchAdminTab(tabId) {
+      state.activeAdminTab = tabId;
+      document.querySelectorAll('.admin-tab-btn').forEach(btn => {
+        const active = btn.getAttribute('data-admin-tab') === tabId;
+        btn.className = `admin-tab-btn w-full text-right px-4 py-3 rounded-xl font-bold text-sm flex items-center justify-between transition-colors ${active ? 'bg-builder text-white shadow-lg' : 'text-white/80 hover:bg-navy-light'}`;
+      });
+      document.querySelectorAll('.admin-tab-panel').forEach(panel => {
+        panel.classList.add('hidden');
+      });
+      const target = document.getElementById(`adminTab_${tabId}`);
+      if (target) target.classList.remove('hidden');
+    }
+
+    function renderAdminKPIs() {
+      document.getElementById('adminKpiMessages').textContent = store.submissions.length;
+      document.getElementById('adminKpiProjects').textContent = store.portfolioItems.length;
+      const newCount = store.submissions.filter(s => s.status === 'new').length;
+      document.getElementById('inboxBadgeCount').textContent = newCount || store.submissions.length;
+    }
+
+    function renderAdminInbox() {
+      renderAdminKPIs();
+      const container = document.getElementById('adminInboxList');
+      const filtered = state.inboxFilter === 'all'
+        ? store.submissions
+        : store.submissions.filter(s => s.status === state.inboxFilter);
+
+      if (filtered.length === 0) {
+        container.innerHTML = `
+          <div class="bg-navy-light border border-white/10 rounded-xl p-8 text-center text-white/60 text-sm font-bold">
+            لا توجد رسائل أو استمارات في هذا التصنيف حالياً.
+          </div>
+        `;
+        return;
+      }
+
+      const statusLabels = {
+        new: { text: 'جديد • لم يتم الرد', cls: 'bg-builder/20 text-builder border-builder/40' },
+        contacted: { text: 'جاري التواصل والمتابعة', cls: 'bg-tech/20 text-tech border-tech/40' },
+        closed: { text: 'مكتمل / تم التعاقد ✓', cls: 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40' }
+      };
+
+      container.innerHTML = filtered.map(sub => {
+        const st = statusLabels[sub.status] || statusLabels.new;
+        return `
+          <div class="bg-navy-light border-2 border-white/10 rounded-2xl p-5 space-y-4">
+            <div class="flex flex-wrap items-center justify-between gap-3 border-b border-white/10 pb-3">
+              <div>
+                <div class="flex items-center gap-2">
+                  <span class="font-black text-base text-white">${escapeHtml(sub.name)}</span>
+                  <span class="text-xs px-2.5 py-0.5 rounded-full border font-bold ${st.cls}">${st.text}</span>
+                </div>
+                <div class="text-xs text-white/70 mt-1 flex flex-wrap gap-4">
+                  <span class="logo-en text-tech font-bold">📞 ${escapeHtml(sub.phone)}</span>
+                  ${sub.email ? `<span class="logo-en">✉️ ${escapeHtml(sub.email)}</span>` : ''}
+                  <span>🕒 ${escapeHtml(sub.createdAt || 'الآن')}</span>
+                </div>
+              </div>
+
+              <div class="flex items-center gap-2">
+                <select data-sub-status="${sub.id}" class="bg-navy border border-white/20 rounded-lg px-2.5 py-1.5 text-xs font-bold text-white outline-none">
+                  <option value="new" ${sub.status === 'new' ? 'selected' : ''}>جديد</option>
+                  <option value="contacted" ${sub.status === 'contacted' ? 'selected' : ''}>جاري التواصل</option>
+                  <option value="closed" ${sub.status === 'closed' ? 'selected' : ''}>مكتمل</option>
+                </select>
+                <button type="button" data-copy-sub="${sub.id}" class="bg-navy hover:bg-tech hover:text-navy border border-white/15 text-xs font-bold px-3 py-1.5 rounded-lg transition-colors">
+                  نسخ البيانات
+                </button>
+                <button type="button" data-del-sub="${sub.id}" class="bg-red-500/15 hover:bg-red-500 text-red-300 hover:text-white text-xs font-bold px-3 py-1.5 rounded-lg transition-colors">
+                  حذف
+                </button>
+              </div>
+            </div>
+
+            <div class="bg-navy p-3.5 rounded-xl border border-white/10 text-xs text-white/90 whitespace-pre-line leading-relaxed">${escapeHtml(sub.brief)}</div>
+          </div>
+        `;
+      }).join('');
+
+      container.querySelectorAll('[data-sub-status]').forEach(sel => {
+        sel.addEventListener('change', () => {
+          const id = sel.getAttribute('data-sub-status');
+          const sub = store.submissions.find(s => s.id === id);
+          if (sub) {
+            sub.status = sel.value;
+            saveStore();
+            fetch('/api/submissions', { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, credentials: 'same-origin', body: JSON.stringify({ id, status: sel.value }) }).catch(() => {});
+            renderAdminInbox();
+            showToast('تم تحديث حالة الطلب ✓');
+          }
+        });
+      });
+
+      container.querySelectorAll('[data-copy-sub]').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const id = btn.getAttribute('data-copy-sub');
+          const sub = store.submissions.find(s => s.id === id);
+          if (sub) {
+            copyTextToClipboard(`العميل: ${sub.name}\nالهاتف: ${sub.phone}\n${sub.email ? `البريد: ${sub.email}\n` : ''}\n${sub.brief}`);
+            showToast('تم نسخ بيانات العميل والمقايسة ✓');
+          }
+        });
+      });
+
+      container.querySelectorAll('[data-del-sub]').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const id = btn.getAttribute('data-del-sub');
+          store.submissions = store.submissions.filter(s => s.id !== id);
+          saveStore();
+          fetch('/api/submissions?id=' + encodeURIComponent(id), { method: 'DELETE', credentials: 'same-origin' }).catch(() => {});
+          renderAdminInbox();
+          showToast('تم حذف الرسالة من الصندوق');
+        });
+      });
+    }
+
+    function renderAdminPricing() {
+      // 1. Core Services List
+      const srvContainer = document.getElementById('adminServicesList');
+      srvContainer.innerHTML = store.projectTypes.map((srv, idx) => `
+        <div class="bg-navy-light border border-white/15 rounded-xl p-4 space-y-3">
+          <div class="flex items-center justify-between border-b border-white/10 pb-2">
+            <span class="font-black text-sm text-builder">${srv.icon || '💻'} ${srv.nameAr}</span>
+            <button type="button" data-del-srv="${srv.id}" class="text-xs text-red-400 hover:text-red-300 font-bold">حذف الخدمة ✕</button>
+          </div>
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 text-xs">
+            <div>
+              <label class="block text-white/70 mb-1">اسم الخدمة (عربي)</label>
+              <input type="text" data-srv-field="nameAr" data-srv-idx="${idx}" value="${srv.nameAr}" class="w-full bg-navy border border-white/20 rounded-lg px-2.5 py-1.5 text-white font-bold" />
+            </div>
+            <div>
+              <label class="block text-white/70 mb-1">السعر الأساسي (ج.م EGP)</label>
+              <input type="number" step="500" data-srv-field="basePriceEGP" data-srv-idx="${idx}" value="${srv.basePriceEGP}" class="w-full bg-navy border border-tech/50 rounded-lg px-2.5 py-1.5 text-tech font-black logo-en" />
+            </div>
+            <div>
+              <label class="block text-white/70 mb-1">السعر بالدولار (USD $)</label>
+              <input type="number" step="10" data-srv-field="basePriceUSD" data-srv-idx="${idx}" value="${srv.basePriceUSD}" class="w-full bg-navy border border-white/20 rounded-lg px-2.5 py-1.5 text-white font-bold logo-en" />
+            </div>
+            <div>
+              <label class="block text-white/70 mb-1">مدة التنفيذ (بالأسابيع)</label>
+              <input type="number" min="1" data-srv-field="weeks" data-srv-idx="${idx}" value="${srv.weeks}" class="w-full bg-navy border border-white/20 rounded-lg px-2.5 py-1.5 text-builder font-black logo-en" />
+            </div>
+            <div class="sm:col-span-2 lg:col-span-4">
+              <label class="block text-white/70 mb-1">وصف الخدمة (عربي)</label>
+              <input type="text" data-srv-field="descAr" data-srv-idx="${idx}" value="${srv.descAr}" class="w-full bg-navy border border-white/20 rounded-lg px-2.5 py-1.5 text-white" />
+            </div>
+          </div>
+        </div>
+      `).join('');
+
+      srvContainer.querySelectorAll('[data-srv-field]').forEach(inp => {
+        inp.addEventListener('change', () => {
+          const idx = Number(inp.getAttribute('data-srv-idx'));
+          const field = inp.getAttribute('data-srv-field');
+          if (!store.projectTypes[idx]) return;
+          const isNum = ['basePriceEGP', 'basePriceUSD', 'weeks'].includes(field);
+          store.projectTypes[idx][field] = isNum ? Number(inp.value) : inp.value;
+          saveStore();
+          applyTranslations();
+          showToast('تم تحديث سعر/بيانات الخدمة فوراً ✓');
+        });
+      });
+
+      srvContainer.querySelectorAll('[data-del-srv]').forEach(btn => {
+        btn.addEventListener('click', () => {
+          if (store.projectTypes.length <= 1) {
+            showToast('يجب الإبقاء على خدمة واحدة على الأقل');
+            return;
+          }
+          const id = btn.getAttribute('data-del-srv');
+          store.projectTypes = store.projectTypes.filter(s => s.id !== id);
+          saveStore();
+          renderAdminPricing();
+          applyTranslations();
+          showToast('تم حذف الخدمة');
+        });
+      });
+
+      // 2. Estimator Add-ons List
+      const addonContainer = document.getElementById('adminAddonsList');
+      addonContainer.innerHTML = store.addonsList.map((addon, idx) => `
+        <div class="bg-navy-light border border-white/15 rounded-xl p-3.5 grid grid-cols-1 sm:grid-cols-12 gap-3 items-center text-xs">
+          <div class="sm:col-span-5">
+            <label class="block text-white/60 mb-1">اسم الميزة الإضافية</label>
+            <input type="text" data-addon-field="nameAr" data-addon-idx="${idx}" value="${addon.nameAr}" class="w-full bg-navy border border-white/20 rounded-lg px-2.5 py-1.5 text-white font-bold" />
+          </div>
+          <div class="sm:col-span-3">
+            <label class="block text-white/60 mb-1">السعر (ج.م)</label>
+            <input type="number" step="250" data-addon-field="priceEGP" data-addon-idx="${idx}" value="${addon.priceEGP}" class="w-full bg-navy border border-tech/50 rounded-lg px-2.5 py-1.5 text-tech font-black logo-en" />
+          </div>
+          <div class="sm:col-span-2">
+            <label class="block text-white/60 mb-1">السعر ($)</label>
+            <input type="number" step="10" data-addon-field="priceUSD" data-addon-idx="${idx}" value="${addon.priceUSD}" class="w-full bg-navy border border-white/20 rounded-lg px-2.5 py-1.5 text-white font-bold logo-en" />
+          </div>
+          <div class="sm:col-span-2 flex items-end justify-end pt-4">
+            <button type="button" data-del-addon="${addon.id}" class="bg-red-500/15 hover:bg-red-500 text-red-300 hover:text-white font-bold px-3 py-1.5 rounded-lg transition-colors">
+              حذف ✕
+            </button>
+          </div>
+        </div>
+      `).join('');
+
+      addonContainer.querySelectorAll('[data-addon-field]').forEach(inp => {
+        inp.addEventListener('change', () => {
+          const idx = Number(inp.getAttribute('data-addon-idx'));
+          const field = inp.getAttribute('data-addon-field');
+          if (!store.addonsList[idx]) return;
+          const isNum = ['priceEGP', 'priceUSD', 'weeks'].includes(field);
+          store.addonsList[idx][field] = isNum ? Number(inp.value) : inp.value;
+          saveStore();
+          applyTranslations();
+          showToast('تم تحديث سعر الميزة الإضافية ✓');
+        });
+      });
+
+      addonContainer.querySelectorAll('[data-del-addon]').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const id = btn.getAttribute('data-del-addon');
+          store.addonsList = store.addonsList.filter(a => a.id !== id);
+          state.selectedAddons = state.selectedAddons.filter(x => x !== id);
+          saveStore();
+          renderAdminPricing();
+          applyTranslations();
+          showToast('تم حذف الميزة من الحاسبة');
+        });
+      });
+
+      // 3. Priorities Multiplier
+      const prioContainer = document.getElementById('adminPrioritiesList');
+      prioContainer.innerHTML = store.priorities.map((p, idx) => `
+        <div class="bg-navy-light border border-white/15 rounded-xl p-3.5 space-y-2 text-xs">
+          <div class="font-bold text-white">${p.nameAr}</div>
+          <div>
+            <label class="block text-white/60 mb-1">معامل ضرب السعر (Multiplier)</label>
+            <input type="number" step="0.05" data-prio-mult="${idx}" value="${p.multiplier}" class="w-full bg-navy border border-builder/50 rounded-lg px-2.5 py-1.5 text-builder font-black logo-en" />
+          </div>
+        </div>
+      `).join('');
+
+      prioContainer.querySelectorAll('[data-prio-mult]').forEach(inp => {
+        inp.addEventListener('change', () => {
+          const idx = Number(inp.getAttribute('data-prio-mult'));
+          if (store.priorities[idx]) {
+            store.priorities[idx].multiplier = Number(inp.value) || 1;
+            saveStore();
+            applyTranslations();
+            showToast('تم تحديث معامل السعر ✓');
+          }
+        });
+      });
+    }
+
+    function renderAdminProjects() {
+      renderAdminKPIs();
+      const container = document.getElementById('adminProjectsList');
+      container.innerHTML = store.portfolioItems.map((proj, idx) => `
+        <div class="bg-navy-light border border-white/15 rounded-2xl p-4 space-y-3 text-xs">
+          <div class="flex items-center justify-between border-b border-white/10 pb-2">
+            <span class="font-black text-sm text-tech">${proj.titleAr}</span>
+            <button type="button" data-del-proj="${proj.id}" class="bg-red-500/15 hover:bg-red-500 text-red-300 hover:text-white font-bold px-3 py-1 rounded-lg">
+              حذف المشروع ✕
+            </button>
+          </div>
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <div>
+              <label class="block text-white/70 mb-1">عنوان المشروع (عربي)</label>
+              <input type="text" data-proj-field="titleAr" data-proj-idx="${idx}" value="${proj.titleAr}" class="w-full bg-navy border border-white/20 rounded-lg px-2.5 py-1.5 text-white font-bold" />
+            </div>
+            <div>
+              <label class="block text-white/70 mb-1">الشارة (Badge)</label>
+              <input type="text" data-proj-field="badgeAr" data-proj-idx="${idx}" value="${proj.badgeAr}" class="w-full bg-navy border border-white/20 rounded-lg px-2.5 py-1.5 text-builder font-bold" />
+            </div>
+            <div>
+              <label class="block text-white/70 mb-1">التصنيف في الفلتر</label>
+              <select data-proj-field="category" data-proj-idx="${idx}" class="w-full bg-navy border border-white/20 rounded-lg px-2.5 py-1.5 text-white font-bold">
+                <option value="ecommerce" ${proj.category === 'ecommerce' ? 'selected' : ''}>متاجر إلكترونية (ecommerce)</option>
+                <option value="mobile" ${proj.category === 'mobile' ? 'selected' : ''}>تطبيقات موبايل (mobile)</option>
+                <option value="custom" ${proj.category === 'custom' ? 'selected' : ''}>أنظمة خاصة ERP (custom)</option>
+                <option value="web" ${proj.category === 'web' ? 'selected' : ''}>مواقع شركات (web)</option>
+              </select>
+            </div>
+            <div class="sm:col-span-2">
+              <label class="block text-white/70 mb-1">وصف المشروع</label>
+              <input type="text" data-proj-field="descAr" data-proj-idx="${idx}" value="${proj.descAr}" class="w-full bg-navy border border-white/20 rounded-lg px-2.5 py-1.5 text-white" />
+            </div>
+            <div>
+              <label class="block text-white/70 mb-1">التقنيات (مفصولة بفاصلة ,)</label>
+              <input type="text" data-proj-tech="${idx}" value="${(proj.tech || []).join(', ')}" class="w-full bg-navy border border-white/20 rounded-lg px-2.5 py-1.5 text-tech font-bold logo-en" />
+            </div>
+          </div>
+        </div>
+      `).join('');
+
+      container.querySelectorAll('[data-proj-field]').forEach(inp => {
+        inp.addEventListener('change', () => {
+          const idx = Number(inp.getAttribute('data-proj-idx'));
+          const field = inp.getAttribute('data-proj-field');
+          if (store.portfolioItems[idx]) {
+            store.portfolioItems[idx][field] = inp.value;
+            saveStore();
+            applyTranslations();
+            showToast('تم حفظ تعديل المشروع ✓');
+          }
+        });
+      });
+
+      container.querySelectorAll('[data-proj-tech]').forEach(inp => {
+        inp.addEventListener('change', () => {
+          const idx = Number(inp.getAttribute('data-proj-tech'));
+          if (store.portfolioItems[idx]) {
+            store.portfolioItems[idx].tech = inp.value.split(',').map(s => s.trim()).filter(Boolean);
+            saveStore();
+            applyTranslations();
+            showToast('تم تحديث تقنيات المشروع ✓');
+          }
+        });
+      });
+
+      container.querySelectorAll('[data-del-proj]').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const id = btn.getAttribute('data-del-proj');
+          store.portfolioItems = store.portfolioItems.filter(p => p.id !== id);
+          saveStore();
+          renderAdminProjects();
+          applyTranslations();
+          showToast('تم حذف المشروع من المعرض');
+        });
+      });
+    }
+
+    function renderAdminContent() {
+      document.getElementById('cfg_hero_badge_ar').value = store.i18n.ar.hero_badge || '';
+      document.getElementById('cfg_hero_title1_ar').value = store.i18n.ar.hero_title_1 || '';
+      document.getElementById('cfg_hero_title2_ar').value = store.i18n.ar.hero_title_2 || '';
+      document.getElementById('cfg_hero_desc_ar').value = store.i18n.ar.hero_desc || '';
+      document.getElementById('cfg_contact_domain').value = store.contactInfo.domain || '';
+      document.getElementById('cfg_contact_email').value = store.contactInfo.email || '';
+      document.getElementById('cfg_contact_fb').value = store.contactInfo.fb || '';
+      document.getElementById('newAdminPassInput').value = '';
+
+      const procContainer = document.getElementById('adminProcessList');
+      procContainer.innerHTML = store.processSteps.map((step, idx) => `
+        <div class="bg-navy-light border border-white/15 rounded-xl p-3.5 space-y-2 text-xs">
+          <div class="flex items-center justify-between">
+            <span class="font-black text-builder logo-en">${step.num} • ${step.tag}</span>
+          </div>
+          <div>
+            <label class="block text-white/60 mb-1">عنوان المرحلة</label>
+            <input type="text" data-proc-field="titleAr" data-proc-idx="${idx}" value="${step.titleAr}" class="w-full bg-navy border border-white/20 rounded-lg px-2.5 py-1.5 text-white font-bold" />
+          </div>
+          <div>
+            <label class="block text-white/60 mb-1">وصف المرحلة</label>
+            <input type="text" data-proc-field="descAr" data-proc-idx="${idx}" value="${step.descAr}" class="w-full bg-navy border border-white/20 rounded-lg px-2.5 py-1.5 text-white" />
+          </div>
+        </div>
+      `).join('');
+
+      procContainer.querySelectorAll('[data-proc-field]').forEach(inp => {
+        inp.addEventListener('change', () => {
+          const idx = Number(inp.getAttribute('data-proc-idx'));
+          const field = inp.getAttribute('data-proc-field');
+          if (store.processSteps[idx]) {
+            store.processSteps[idx][field] = inp.value;
+            saveStore();
+            applyTranslations();
+            showToast('تم تحديث مرحلة البناء ✓');
+          }
+        });
+      });
+    }
+
+    function renderAdminAll() {
+      renderAdminInbox();
+      renderAdminPricing();
+      renderAdminProjects();
+      renderAdminContent();
+    }
+
+    function copyTextToClipboard(text) {
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text).catch(() => fallbackCopy(text));
+      } else {
+        fallbackCopy(text);
+      }
+    }
+
+    function fallbackCopy(text) {
+      const ta = document.createElement('textarea');
+      ta.value = text;
+      document.body.appendChild(ta);
+      ta.select();
+      try { document.execCommand('copy'); } catch (e) {}
+      document.body.removeChild(ta);
+    }
+
+    // -----------------------------------------------------------------------
+    // INITIALIZATION & EVENT LISTENERS
+    // -----------------------------------------------------------------------
+    window.addEventListener('DOMContentLoaded', () => {
+      applyTranslations();
+      loadConfigFromServer();
+
+      // Check if URL hash is #admin
+      if (window.location.hash === '#admin') {
+        openAdminGate();
+      }
+      window.addEventListener('hashchange', () => {
+        if (window.location.hash === '#admin') {
+          openAdminGate();
+        }
+      });
+
+      // Secret Keyboard Shortcut: Alt+A or Ctrl+Shift+A
+      window.addEventListener('keydown', (e) => {
+        if ((e.altKey && e.key.toLowerCase() === 'a') || (e.ctrlKey && e.shiftKey && e.key.toLowerCase() === 'a')) {
+          e.preventDefault();
+          openAdminGate();
+        }
+      });
+
+      document.getElementById('closeAdminLoginBtn').addEventListener('click', closeAdminLoginModal);
+
+      // Brute-force protection state
+      let failedAttempts = 0;
+      let lockoutUntil = 0;
+
+      // Admin Login Form Submit (Supabase Auth Server-Side OR 5,000-round Salted SHA-256 + Brute-Force Lockout)
+      document.getElementById('adminLoginForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const errEl = document.getElementById('adminLoginError');
+        const now = Date.now();
+        if (now < lockoutUntil) {
+          const waitSec = Math.ceil((lockoutUntil - now) / 1000);
+          errEl.textContent = `تم حظر المحاولات مؤقتاً لحماية النظام. حاول بعد ${waitSec} ثانية.`;
+          errEl.classList.remove('hidden');
+          return;
+        }
+        const entered = document.getElementById('adminPassInput').value;
+
+        // 1. Try Server-Side Vercel Auth Endpoint (/api/admin-auth) first
+        try {
+          const authRes = await fetch('/api/admin-auth', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'same-origin',
+            body: JSON.stringify({ password: entered })
+          });
+          if (authRes.ok) {
+            apiServerAvailable = true;
+            updateServerStatusBadge();
+            failedAttempts = 0;
+            lockoutUntil = 0;
+            state.isAdminAuthenticated = true;
+            document.getElementById('adminPassInput').value = '';
+            errEl.classList.add('hidden');
+            enterAdminDashboard();
+            await loadSubmissionsFromServer();
+            showToast('تم تسجيل الدخول عبر سيرفر Vercel بنجاح ⚡');
+            return;
+          }
+        } catch (err) {}
+
+        // 2. Fallback for Canvas preview environment (5,000-round Salted SHA-256)
+        const computedHash = hashPasswordWithSalt(entered, store.passSalt);
+        if (timingSafeEqualHex(computedHash, store.passHash)) {
+          failedAttempts = 0;
+          lockoutUntil = 0;
+          state.isAdminAuthenticated = true;
+          document.getElementById('adminPassInput').value = '';
+          errEl.classList.add('hidden');
+          enterAdminDashboard();
+          await loadSubmissionsFromServer();
+          showToast('تم التحقق الأمني بنجاح');
+        } else {
+          failedAttempts += 1;
+          if (failedAttempts >= 5) {
+            lockoutUntil = Date.now() + 60000;
+            errEl.textContent = 'تم تجاوز الحد الأقصى للمحاولات! تم قفل الدخول لمدة 60 ثانية.';
+          } else {
+            errEl.textContent = `بيانات الاعتماد غير صالحة. المحاولات المتبقية: ${5 - failedAttempts}`;
+          }
+          errEl.classList.remove('hidden');
+        }
+      });
+
+      // Admin Navigation & Exit Buttons
+      document.getElementById('exitAdminToSiteBtn').addEventListener('click', exitAdminToSite);
+      document.getElementById('logoutAdminBtn').addEventListener('click', () => {
+        state.isAdminAuthenticated = false;
+        exitAdminToSite();
+        showToast('تم تسجيل الخروج من لوحة الإدارة');
+      });
+
+      document.querySelectorAll('.admin-tab-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          switchAdminTab(btn.getAttribute('data-admin-tab'));
+        });
+      });
+
+      // Admin Inbox Filter & Test Submission
+      document.getElementById('adminInboxFilter').addEventListener('change', (e) => {
+        state.inboxFilter = e.target.value;
+        renderAdminInbox();
+      });
+
+
+
+      // Admin Add New Service
+      document.getElementById('addNewServiceBtn').addEventListener('click', () => {
+        const newId = 'srv_' + Date.now();
+        store.projectTypes.push({
+          id: newId,
+          icon: '🚀',
+          nameAr: 'خدمة برمجية جديدة',
+          nameEn: 'New Software Service',
+          descAr: 'وصف الخدمة البرمجية الجديدة ومميزاتها للعملاء.',
+          descEn: 'Description of the new software service.',
+          basePriceEGP: 15000,
+          basePriceUSD: 450,
+          weeks: 3
+        });
+        saveStore();
+        renderAdminPricing();
+        applyTranslations();
+        showToast('تمت إضافة الخدمة الجديدة! يمكنك تعديل اسمها وسعرها الآن');
+      });
+
+      // Admin Add New Estimator Add-on
+      document.getElementById('addNewAddonBtn').addEventListener('click', () => {
+        store.addonsList.push({
+          id: 'addon_' + Date.now(),
+          nameAr: 'ميزة إضافية جديدة للمشروع',
+          nameEn: 'New Custom Project Feature',
+          priceEGP: 3000,
+          priceUSD: 90,
+          weeks: 1
+        });
+        saveStore();
+        renderAdminPricing();
+        applyTranslations();
+        showToast('تمت إضافة ميزة جديدة لحاسبة التكلفة ✓');
+      });
+
+      // Admin Add New Portfolio Project
+      document.getElementById('addNewProjectBtn').addEventListener('click', () => {
+        store.portfolioItems.unshift({
+          id: 'p_' + Date.now(),
+          category: 'web',
+          badgeAr: 'مشروع جديد',
+          badgeEn: 'New Project',
+          titleAr: 'اسم المشروع الجديد في المعرض',
+          titleEn: 'New Showcase Project Title',
+          descAr: 'وصف مختصر للمشروع والمميزات التقنية التي تم تنفيذها.',
+          descEn: 'Short summary of the engineered solution and features.',
+          tech: ['React', 'Node.js', 'UI/UX']
+        });
+        saveStore();
+        renderAdminProjects();
+        applyTranslations();
+        showToast('تمت إضافة مشروع جديد لأعمال الشركة ✓');
+      });
+
+      // Admin Save Content & Contact Config
+      document.getElementById('saveContentConfigBtn').addEventListener('click', () => {
+        store.i18n.ar.hero_badge = document.getElementById('cfg_hero_badge_ar').value.trim();
+        store.i18n.ar.hero_title_1 = document.getElementById('cfg_hero_title1_ar').value.trim();
+        store.i18n.ar.hero_title_2 = document.getElementById('cfg_hero_title2_ar').value.trim();
+        store.i18n.ar.hero_desc = document.getElementById('cfg_hero_desc_ar').value.trim();
+        store.contactInfo.domain = document.getElementById('cfg_contact_domain').value.trim();
+        store.contactInfo.email = document.getElementById('cfg_contact_email').value.trim();
+        store.contactInfo.fb = document.getElementById('cfg_contact_fb').value.trim();
+        saveStore();
+        applyTranslations();
+        showToast('تم حفظ نصوص الموقع وبيانات التواصل بنجاح ✓');
+      });
+
+      // Vercel Serverless Sync & SQL Copy Handlers
+      document.getElementById('syncToSupabaseNowBtn').addEventListener('click', async () => {
+        const ok = await syncConfigToServer();
+        showToast(ok ? 'تمت مزامنة البيانات مع Supabase عبر سيرفر Vercel بنجاح ☁️✓' : 'وضع المعاينة: عند الرفع على Vercel وإضافة DATABASE_URL ستتم المزامنة تلقائياً');
+      });
+
+      document.getElementById('copySupabaseSqlBtn').addEventListener('click', () => {
+        const sqlText = document.getElementById('supabaseSqlCodeBlock').textContent;
+        copyTextToClipboard(sqlText);
+        showToast('تم نسخ كود SQL! الصقه في Supabase SQL Editor ✓');
+      });
+
+      // Admin Security & Backup Actions
+      document.getElementById('saveAdminPassBtn').addEventListener('click', async () => {
+        const val = document.getElementById('newAdminPassInput').value;
+        if (!val) {
+          showToast('يرجى إدخال كلمة المرور الجديدة أولاً');
+          return;
+        }
+        const newSalt = generateSaltHex(16);
+        store.passSalt = newSalt;
+        store.passHash = hashPasswordWithSalt(val, newSalt);
+        saveStore();
+        renderAdminContent();
+        showToast('تم توليد Salt جديد وتشفير كلمة المرور بـ 5000 جولة SHA-256 ✓');
+      });
+
+      document.getElementById('exportJsonBtn').addEventListener('click', () => {
+        copyTextToClipboard(JSON.stringify(store, null, 2));
+        showToast('تم نسخ كافة بيانات الموقع والرسائل بصيغة JSON ✓');
+      });
+
+      document.getElementById('resetFactoryBtn').addEventListener('click', () => {
+        store = cloneDefault();
+        saveStore();
+        renderAdminAll();
+        applyTranslations();
+        showToast('تمت استعادة الإعدادات والأسعار الافتراضية للموقع ✓');
+      });
+
+      // Public Site Controls
+      document.getElementById('langToggleBtn').addEventListener('click', () => {
+        state.lang = state.lang === 'ar' ? 'en' : 'ar';
+        applyTranslations();
+      });
+
+      document.getElementById('mobileMenuBtn').addEventListener('click', () => {
+        const menu = document.getElementById('mobileMenu');
+        menu.classList.toggle('hidden');
+      });
+
+      document.querySelectorAll('.mobile-nav-link').forEach(link => {
+        link.addEventListener('click', () => {
+          document.getElementById('mobileMenu').classList.add('hidden');
+        });
+      });
+
+      document.getElementById('closeModalBtn').addEventListener('click', closeModal);
+      document.getElementById('modalOverlay').addEventListener('click', (e) => {
+        if (e.target.id === 'modalOverlay') closeModal();
+      });
+
+      document.getElementById('sendEstimateToFormBtn').addEventListener('click', () => {
+        const briefText = getBlueprintText();
+        document.getElementById('clientService').value = state.selectedType;
+        document.getElementById('clientBrief').value = briefText;
+        document.getElementById('contact').scrollIntoView({ behavior: 'smooth' });
+        showToast(state.lang === 'ar' ? 'تم نقل المقايسة إلى نموذج الطلب بالأسفل!' : 'Blueprint copied to the consultation form below!');
+      });
+
+      document.getElementById('copyEstimateBtn').addEventListener('click', () => {
+        const briefText = getBlueprintText();
+        copyTextToClipboard(briefText);
+        showToast(state.lang === 'ar' ? 'تم نسخ المقايسة للحافظة بنجاح ✓' : 'Blueprint summary copied to clipboard ✓');
+      });
+
+      document.getElementById('quoteForm').addEventListener('submit', (e) => {
+        e.preventDefault();
+        const isAr = state.lang === 'ar';
+        const name = document.getElementById('clientName').value.trim();
+        const phone = document.getElementById('clientPhone').value.trim();
+        const email = document.getElementById('clientEmail').value.trim();
+        const service = document.getElementById('clientService').value;
+        const brief = document.getElementById('clientBrief').value.trim();
+
+        const newSub = {
+          id: 'sub_' + Date.now(),
+          name,
+          phone,
+          email,
+          service,
+          status: 'new',
+          brief,
+          createdAt: new Date().toLocaleTimeString()
+        };
+        store.submissions.unshift(newSub);
+        saveStore();
+        fetch('/api/submissions', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(newSub)
+        }).catch(() => {});
+        renderAdminKPIs();
+
+        const modalHtml = `
+          <div class="space-y-4">
+            <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-tech/20 text-tech text-xs font-bold">
+              <span>✓</span>
+              <span>${isAr ? 'تم إرسال طلبك وحفظه في لوحة الإدارة بنجاح' : 'Request Saved to Admin Inbox Successfully'}</span>
+            </div>
+            <h3 class="text-xl font-black text-white">${isAr ? `شكراً لك يا ${escapeHtml(name)}!` : `Thank you, ${escapeHtml(name)}!`}</h3>
+            <p class="text-sm text-white/80 leading-relaxed">
+              ${isAr
+                ? 'تم تسجيل طلبك في لوحة إدارة ebnili.dev مباشرة، ويمكنك أيضاً نسخ الملخص لإرساله عبر رسائل فيسبوك (@ebnili.dev):'
+                : 'Your request is logged in the ebnili.dev Admin Inbox! You can also copy it below:'}
+            </p>
+            <div class="bg-navy p-4 rounded-xl border border-white/10 text-xs text-white/90 whitespace-pre-line leading-relaxed">${escapeHtml(brief)}</div>
+            <div class="flex flex-wrap gap-3 pt-2">
+              <button type="button" id="modalCopyBriefBtn" class="flex-1 bg-builder hover:bg-builder-hover text-white font-bold py-2.5 px-4 rounded-xl text-xs transition-colors">
+                ${isAr ? 'نسخ نص الطلب بالكامل' : 'Copy Full Request Text'}
+              </button>
+              <button type="button" id="modalDoneBtn" class="bg-navy hover:bg-white/10 text-white/80 font-bold py-2.5 px-4 rounded-xl text-xs border border-white/15">
+                ${isAr ? 'إغلاق' : 'Close'}
+              </button>
+            </div>
+          </div>
+        `;
+        openModal(modalHtml);
+
+        document.getElementById('quoteForm').reset();
+
+        document.getElementById('modalCopyBriefBtn').addEventListener('click', () => {
+          const fullMsg = `${isAr ? 'الاسم' : 'Name'}: ${name}\n${isAr ? 'الهاتف' : 'Phone'}: ${phone}\n${email ? `Email: ${email}\n` : ''}\n${brief}`;
+          copyTextToClipboard(fullMsg);
+          showToast(isAr ? 'تم نسخ نص الطلب بالكامل ✓' : 'Full request copied to clipboard ✓');
+        });
+        document.getElementById('modalDoneBtn').addEventListener('click', closeModal);
+      });
+    });
+  </script>
+</body>
+</html>
